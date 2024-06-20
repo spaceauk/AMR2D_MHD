@@ -1,0 +1,41 @@
+First start with ensuring that the code can successfully run four static blocks. This includes the ghost cells and boundary conditions among the blocks. 
+- After getting the static blocks to work, refinement/coarsening can be done in a simpler way e.g.,
+do nb...
+	call refine()...
+	call updatelpref()...
+end do
+
+Use:
+- dom.dx[lp[nb][0]], dom.dy[lp[nb][0]]
+
+
+Difference from orig_f90:
+- ilev here starts with 0 instead of 1 from the orig_f90.
+
+NOTE that I need to change my B.C.s as mine is not reflective boundary! It should be Dirichlet BCs.
+
+Debugging checkpoints:
+- To ensure validity of code, the code must first be able to produce a single line using all data points obtained from test case BWx, BWx1, BWy, BWy1. The plot must be correct too.
+- Is not my MUSCL or RS got issue as w/o AMR and at 256x256 uniform grid & cfl-0.4, there is no oscillation and 1 single correct graph is obtained!
+- Turn off coarsening first. Issue still there but less. try correcting it I think error is not in boundary since with smaller mesh, the adaptive mesh is correct and result is correct. But with larger mesh, adaptive mesh is not working probably giving rise to non-single graph for SST. Both coarsening and refining got issue but I will start with refining first. --> No issue is the boundary which cause wierd areas to refine/coarsen
+
+- Left with no symmetry esp for BWy unlike BWx/BWx1/BWy1 where WENO does not work at CFL=0.45. Can be corrected for celledge by using ist=0 but v inconsistent...
+
+
+Note that without mpi,
+rank=0   &   np=1
+
+
+Changes that I have made:
+- Correct (i+1)/2 & (j+1)/2 to (i+2)/2 & (j+2)/2 in refine.cpp, boundary1.cpp and boundary2.cpp
+- if the admesh does not work in loop due to seg fault, prob due to coarsening as that is not checked
+  coarsen got issue (e.g., nan at celledge) I think cause it does not update boundary values
+- If the error is due to NaN values in flux[], it is possible that the error is a result of using small dx & dy for residual computation from flux and one way to test that is used smaller CFL number to see if it works.
+- error shld lie in updatelpdown.cpp
+- Now can run up to CFL=0.3 but results seem a bit wavy??? Is it due to the code itself?
+
+Some changes I can make after I manage to have everything AMR working!
+E.g., for refine.cpp & coarsen.f90, I use son1 to son4 but I can change it to fit mine which is son0 to son3. 
+
+
+Note that AMR gradient threshold is still not optimal as is user defined. Other more suitable criteria is required.
