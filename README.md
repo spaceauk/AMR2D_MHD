@@ -16,8 +16,9 @@ Following plots are started with 4 root blocks each with grid size of 16 by 16.
    a. Density:
    ![rotor045t_0 295062_16x16_lv5_MC_RUSA_density](https://github.com/spaceauk/AMR2D_MHD/assets/64028216/231fdce4-20ae-4040-b503-fe74af8072dc)
    b. Pressure:
-file:///home/spaceghoul/Desktop/Summer2024/test_AMR/MHD_MUSCL_n_WENO_genBC_n_AMR/plots/good_img_AMR/rotor045t_0.295062_16x16_lv5_MC_RUSA_pressure.png
-   c. Magnetic field along x:  file:///home/spaceghoul/Desktop/Summer2024/test_AMR/MHD_MUSCL_n_WENO_genBC_n_AMR/plots/good_img_AMR/rotor045t_0.295062_16x16_lv5_MC_RUSA_Bx.png
+   ![rotor045t_0 295062_16x16_lv5_MC_RUSA_pressure](https://github.com/spaceauk/AMR2D_MHD/assets/64028216/e9dc4eff-9b0d-4729-a94b-9dd1c9ae0f4d)
+   c. Magnetic field along x:
+   ![rotor045t_0 295062_16x16_lv5_MC_RUSA_Bx](https://github.com/spaceauk/AMR2D_MHD/assets/64028216/8a6049e1-9b96-420f-8a81-136904c2a615)
 
 
 
