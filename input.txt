@@ -1,5 +1,5 @@
 8 8 8
 1.0 1.0 
 0.44
-BWy WENO5 RUSA
+BWx MC RUSA
 

@@ -19,7 +19,7 @@ using real = float;
 #define R 287.0 // Gas constant for air
 
 // Global variables
-const int nghosts=4;   // # of ghost cells
+const int nghosts=2;   // # of ghost cells
 const int maxlevs=5;
 const int nbroots=4;    // # of root blocks
 const int maxblocks= nbroots>pow(nbroots,maxlevs-1) ? nbroots : pow(4,maxlevs)*2;
@@ -27,6 +27,7 @@ const int maxblocks= nbroots>pow(nbroots,maxlevs-1) ? nbroots : pow(4,maxlevs)*2
 const bool MAG_field=true;
 const bool CT_mtd=true;                // Apply constrained transport method to ensure divergence free magnetic field
 const bool diffusion=false;            // Apply diffusion on all variables for stability
+const string rlimiter="minmod";	       // Slope limiter for refinement (recommended to use minmod)
 
 // Forward declarations needed for class files
 class meshblock {

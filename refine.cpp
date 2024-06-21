@@ -12,17 +12,49 @@
 //  35       18         34      (g)
 
 #include "defs.hpp"
+real slopelimiter(string limiter,real r,real eta);
+
+real refineSL(real**** Q,int nx,int ny,int i,int j,int k,int nb,int signx,int signy) {
+	real r,phi;
+	real result=Q[i][j][k][nb];
+	// Slope limiter for refining
+	// Note that the sign is used to determine which side of the refined cell center lies on the original 
+	// coarse cell center. E.g.,
+	//          i          i+1
+	//    |     .     |     .     |
+	//    |  .  |  .  |  .  |  .  |
+	//     i-1/2  i+1/2
+	//       0     1      --> sign allocated here to tell which side
+	if (i>0 or i<nx-1) {		
+		r=(Q[i][j][k][nb]-Q[i-1][j][k][nb])/(Q[i+1][j][k][nb]-Q[i][j][k][nb] +eps);
+		phi=slopelimiter(rlimiter,r,0)*(Q[i+1][j][k][nb]-Q[i][j][k][nb]);
+		result = signx==0 ? result-phi : result+phi;
+	}
+        if (j>0 or j<nx-1) {       		
+		r=(Q[i][j][k][nb]-Q[i][j-1][k][nb])/(Q[i][j+1][k][nb]-Q[i][j][k][nb] +eps);
+                phi=slopelimiter(rlimiter,r,0)*(Q[i][j+1][k][nb]-Q[i][j][k][nb]);
+                result = signy==0 ? result-phi : result+phi;
+        }
+	return result;
+}
 
 void refine(meshblock &dom, real**** Q, int nvar, int nb, 
 	    int son1, int son2, int son3, int son4) {
+	int ii,jj;
+	int signx,signy;
 	// Update U
 	for (int i=0;i<dom.nx;i++) {
 	  for (int j=0;j<dom.ny;j++) {
 	    for (int k=0;k<nvar;k++) {
-	      Q[i][j][k][son1]=Q[(i+nghosts)/2][(j+nghosts)/2][k][nb];
-	      Q[i][j][k][son2]=Q[(i-nghosts+2)/2+dom.nx2][(j+nghosts)/2][k][nb];
-	      Q[i][j][k][son3]=Q[(i+nghosts)/2][(j-nghosts+2)/2+dom.ny2][k][nb];
-	      Q[i][j][k][son4]=Q[(i-nghosts+2)/2+dom.nx2][(j-nghosts+2)/2+dom.ny2][k][nb];
+	      signx=(i+nghosts)%2; signy=(j+nghosts)%2;
+	      ii=(i+nghosts)/2; jj=(j+nghosts)/2;
+	      Q[i][j][k][son1]=refineSL(Q,dom.nx,dom.ny,ii,jj,k,nb,signx,signy);
+	      ii=(i-nghosts+2)/2+dom.nx2;	      
+	      Q[i][j][k][son2]=refineSL(Q,dom.nx,dom.ny,ii,jj,k,nb,signx,signy);
+	      ii=(i+nghosts)/2; jj=(j-nghosts+2)/2+dom.ny2;
+	      Q[i][j][k][son3]=refineSL(Q,dom.nx,dom.ny,ii,jj,k,nb,signx,signy);
+	      ii=(i-nghosts+2)/2+dom.nx2;
+	      Q[i][j][k][son4]=refineSL(Q,dom.nx,dom.ny,ii,jj,k,nb,signx,signy);
 	    }		
 	  }
 	}
@@ -32,8 +64,7 @@ void refine(meshblock &dom, real**** Q, int nvar, int nb,
 	//  Note that icoord is written such that it is the x/y position
 	//  of the block in terms of the number of cells which is at the 
 	//  assumed resolution of the leaf block. It is written like this 
-	//  cause of how the x & y are computed over here. I can definitely
-	//  correct this to make it less confusing.
+	//  cause of how the x & y are computed over here.
 	
 	// Update icoords
 	cout<<" ["<<son1<<","<<son2<<","<<son3<<","<<son4<<"] ";

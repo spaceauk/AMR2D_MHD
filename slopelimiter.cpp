@@ -9,6 +9,9 @@ real slopelimiter(string limiter,real r,real eta) {
 		phi=0.;
 	} else if (limiter=="noSL" or limiter=="WENO2D") {
 		phi=r;
+	} else if (limiter=="minmod") {
+		real intm0=MIN(1.,r);
+		phi=MAX(0.,intm0);
 	} else if (limiter=="VanLeer") {
 		phi=(abs(r)+r)/(1.+abs(r));
 	} else if (limiter=="Superbee") {

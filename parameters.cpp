@@ -26,7 +26,7 @@ void meshblock::setParam(real gamma, real tEnd) {
         //    G   G                 G   G
         //        b                 b
         //            i   ...   i
-        // So I will call boundary cells (b) as one cell outside the inner cells (i) and ghost cells (G) will contain the b cells too.
+        // Here, boundary cells (b) are one cell outside the inner cells (i) and ghost cells (G) will contain the b cells too.
         // Take note of the < or <= in my loop based on following def
         nxp1=nxmaxb, nyp1=nymaxb;    // p1 = nmax+1
         nxm1=nxmax-1, nym1=nymax-1;  // m1 = nmax-1
