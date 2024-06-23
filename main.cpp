@@ -111,6 +111,7 @@ int main() {
 	while (t<=dom.tEnd and count<=2000) {
 		locate_bounds(dom);
 	        boundary(dom,dom.U,dom.nvar);	
+		if (CT_mtd) boundary(dom,dom.Bi,2);
 
 		if (t==0) {
 		cout<<"0) # of blocks="<<dom.lastActive<<" where maxblocks="<<maxblocks<<", nbleafs="<<dom.nbleafs<<endl;

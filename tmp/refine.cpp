@@ -13,6 +13,7 @@
 
 #include "defs.hpp"
 real slopelimiter(string limiter,real r,real eta);
+real minmod(real Qm1,real Qp1);
 
 real refineSL(real**** Q,int nx,int ny,int i,int j,int k,int nb,int signx,int signy) {
 	real r,phi;
@@ -26,12 +27,31 @@ real refineSL(real**** Q,int nx,int ny,int i,int j,int k,int nb,int signx,int si
 	//     i-1/2  i+1/2
 	//       0     1      --> sign allocated here to tell which side
 	r=(Q[i][j][k][nb]-Q[i-1][j][k][nb])/(Q[i+1][j][k][nb]-Q[i][j][k][nb] +eps);
-	phi=0.25*slopelimiter(rlimiter,r,0)*(Q[i+1][j][k][nb]-Q[i][j][k][nb]);
+	phi=minmod(Q[i][j][k][nb]-Q[i-1][j][k][nb],Q[i+1][j][k][nb]-Q[i][j][k][nb]);
+		//slopelimiter(rlimiter,r,0)*(Q[i+1][j][k][nb]-Q[i][j][k][nb]);
 	result = signx==0 ? result-phi : result+phi;
 
 	r=(Q[i][j][k][nb]-Q[i][j-1][k][nb])/(Q[i][j+1][k][nb]-Q[i][j][k][nb] +eps);
-        phi=0.25*slopelimiter(rlimiter,r,0)*(Q[i][j+1][k][nb]-Q[i][j][k][nb]);
+        phi=minmod(Q[i][j][k][nb]-Q[i][j-1][k][nb],Q[i][j+1][k][nb]-Q[i][j][k][nb]);
+		//slopelimiter(rlimiter,r,0)*(Q[i][j+1][k][nb]-Q[i][j][k][nb]);
         result = signy==0 ? result-phi : result+phi;
+	return result;
+}
+
+real minmod(real Qm1,real Qp1) {
+	real result;
+	int sign1=0,sign2=0;
+	if (Qm1<0) {sign1=-1;} 
+	else if (Qm1>0) {sign1=1;}
+	else if (Qm1==0) {sign1=0;}
+
+	if (Qp1<0) {sign2=-1;}
+        else if (Qp1>0) {sign2=1;}
+        else if (Qp1==0) {sign2=0;}
+
+	real s=(sign1+sign2)/2.;
+	if (abs(s)==1) {result=s*MIN(abs(Qm1),abs(Qp1));}
+	else {result=0.;}
 	return result;
 }
 

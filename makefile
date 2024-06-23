@@ -7,7 +7,7 @@ OBJDIR = ./obj/
 CPPFLAGS = 
 
 CPP =
-CFLAGS = -std=c++17 -Wall  
+CFLAGS = -O3 -std=c++17 -Wall -Wextra -march=native -funroll-loops
 # For debugging (gdb)
 CFLAGS += -g
 # For double precision
@@ -24,7 +24,7 @@ OBJ += markref.o criteria.o critneighup.o critneighdown.o refine.o coarsen.o upd
 # Others
 OBJ += misc.o
 # Constrained transport for zero solenoidal magnetic field
-OBJ += CT2D.o
+OBJ += CT2D.o 
 
 OBJS = $(addprefix $(OBJDIR), $(OBJ))
 

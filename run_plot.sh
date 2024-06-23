@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Base name of the data file
-BASE_NAME="BWx022t_0.200308"
-base_mesh="8x8_lv5"
-slimiter="WENO5"
+BASE_NAME="BWx023t_0.200250"
+base_mesh="8x8_lv5_CT"
+slimiter="MC"
 rsolver="RUSA"
 
 datafile="/data/${BASE_NAME}.dat"

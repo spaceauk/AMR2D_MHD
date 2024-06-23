@@ -42,15 +42,6 @@ void MUSCL2D(meshblock &dom, int nb, int step) {
 		}
 	}
                                                                     
-
-	for (int i=0;i<dom.nx;i++) {
-		for (int j=0;j<dom.ny;j++) {
-			for (int k=0;k<dom.nvar;k++) {
-				dom.ff[i][j][k][nb]=0.; dom.gg[i][j][k][nb]=0.;
-			}
-		}
-	}
-
 	vector<real> wL(8),wR(8),flux(8);
 	for (int i=dom.nxminb; i<=dom.nxmax; i++) {
 		for (int j=dom.nyminb; j<=dom.nymax; j++) {

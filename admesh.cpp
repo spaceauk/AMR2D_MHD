@@ -11,6 +11,7 @@ void refine(meshblock &dom,real**** Q,int nvar,int dad,int son1,int son2,int son
 void updatelpup(meshblock &dom,int dad,int son1,int son2,int son3,int son4);
 void coarsen(meshblock &dom,real**** Q,int nvar,int dad,int son1,int son2,int son3,int son4);
 void updatelpdown(meshblock &dom,int dad,int son1,int son2,int son3,int son4);
+void refineBi_CT(meshblock &dom, real**** Bi, int nvar, int nb,int son1, int son2, int son3, int son4);
 
 void admesh(meshblock &dom) {
 	int brother[3];

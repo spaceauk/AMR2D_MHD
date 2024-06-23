@@ -53,7 +53,7 @@ void CT2D(meshblock &dom,real**** q,real**** Bi,int step,real**** Binew) {
 	        // Check if div(B) is at machine precision
 	        divB=abs((Binew[ip][j][0][nb]-Binew[ii][j][0][nb])/dom.dx[dom.lp[nb][0]] 
 			    +(Binew[i][jp][1][nb]-Binew[i][jj][1][nb])/dom.dy[dom.lp[nb][0]]);
-	        if (divB>Nprec and (i>=dom.nxmin and i<=dom.nxmax) and (j>=dom.nymin and j<=dom.nymax)) {
+	        if (divB>eps and (i>=dom.nxmin and i<=dom.nxmax) and (j>=dom.nymin and j<=dom.nymax)) {
 	          cout<<"CT error as div(B)="<<divB<<" at nb="<<nb<<", i="<<i<<", j="<<j<<endl;
 	          cout<<std::setprecision(Nprec)<<"  where dBx="<<Binew[ip][j][0][nb]-Binew[ii][j][0][nb]<<", Bx1="<<Binew[ii][j][0][nb]<<" & Bx2="
 		      <<Binew[ip][j][0][nb]<<", dx="<<dom.dx[dom.lp[nb][0]]<<endl;
