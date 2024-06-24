@@ -26,6 +26,7 @@ const int maxblocks= nbroots>pow(nbroots,maxlevs-1) ? nbroots : pow(4,maxlevs)*2
 // (a) Additional features
 const bool MAG_field=true;
 const bool CT_mtd=true;                // Apply constrained transport method to ensure divergence free magnetic field
+const int CTtype=1;	               // Type 1: basic; Type 2: upwind 
 const bool diffusion=false;            // Apply diffusion on all variables for stability
 const string rlimiter="minmod";	       // Slope limiter for refinement (recommended to use minmod)
 
