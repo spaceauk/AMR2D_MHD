@@ -11,6 +11,7 @@ void WENO2D_3rd(meshblock &dom,string direc,int nb){
 #else
 	real epsilon=1.E-6;
 #endif
+	#pragma omp parallel for collapse(3) default(none) shared(dom,nb,direc,epsilon) private(ii,jj)
 	for (int i=dom.nxminb; i<=dom.nxmaxb; i++) {
                 for (int j=dom.nyminb; j<=dom.nymaxb; j++) {
                         for (int k=0; k<dom.nvar; k++) {
@@ -97,7 +98,9 @@ void WENO2D_5th(meshblock &dom,string direc,int nb){
         real epsilon=1.E-15;
 #else
         real epsilon=1.E-6;
-#endif	
+#endif
+	#pragma omp parallel for collapse(3) default(none) shared(dom,nb,direc,epsilon) \
+		private(ii,jj,iii,jjj)	
 	for (int i=dom.nxminb; i<=dom.nxmaxb; i++) {
                 for (int j=dom.nyminb; j<=dom.nymaxb; j++) {
                         for (int k=0; k<dom.nvar; k++) {
