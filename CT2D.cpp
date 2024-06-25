@@ -13,6 +13,7 @@ void CT2D(meshblock &dom,real**** q,real**** Bi,int step,real**** Binew) {
 	if (CTtype==1) {
 	for (int nb=0;nb<dom.lastActive;nb++) {
           if (dom.leafs[nb]) {
+	    #pragma omp parallel for collapse(2) default(none) shared(dom,nb)
 	    for (int i=1; i<dom.nx; i++) {
 	      for (int j=1; j<dom.ny; j++) {
                 dom.EMF[i][j][0][nb]=0.25*((dom.gg[i-1][j][5][nb]+dom.gg[i][j][5][nb])
@@ -21,7 +22,8 @@ void CT2D(meshblock &dom,real**** q,real**** Bi,int step,real**** Binew) {
 	    }	
 	  }
 	}
-	} else if (CTtype==2) { // Upwind type
+
+	} else if (CTtype==2) { // Upwind type 
 	real p[dom.nx][dom.ny];
 	real C[dom.nx][dom.ny];
 
@@ -71,6 +73,7 @@ void CT2D(meshblock &dom,real**** q,real**** Bi,int step,real**** Binew) {
 
 	for (int nb=0;nb<dom.lastActive;nb++) {
 	  if (dom.leafs[nb]) {
+	    #pragma omp parallel for collapse(2) default(none) shared(dom,step,Binew,Bi,nb) private(res)
 	    for (int i=0; i<dom.nx; i++) {
 	      for (int j=0; j<dom.ny; j++) {
 	        int ip = i<dom.nx-1 ? i+1 : i;
@@ -88,6 +91,7 @@ void CT2D(meshblock &dom,real**** q,real**** Bi,int step,real**** Binew) {
 	real divB;
 	for (int nb=0;nb<dom.lastActive;nb++) {
           if (dom.leafs[nb]) {
+	    #pragma omp parallel for collapse(2) default(none) shared(dom,q,Binew,nb) private(divB)
 	    for (int i=0; i<dom.nx; i++) {
 	      for (int j=0; j<dom.ny; j++) {
 	        int ip = i<dom.nx-1 ? i+1 : i;
@@ -98,11 +102,7 @@ void CT2D(meshblock &dom,real**** q,real**** Bi,int step,real**** Binew) {
 	        divB=abs((Binew[ip][j][0][nb]-Binew[ii][j][0][nb])/dom.dx[dom.lp[nb][0]] 
 			    +(Binew[i][jp][1][nb]-Binew[i][jj][1][nb])/dom.dy[dom.lp[nb][0]]);
 	        if (false and divB>eps and (i>=dom.nxmin and i<=dom.nxmax) and (j>=dom.nymin and j<=dom.nymax)) {
-	          cout<<"CT error as div(B)="<<divB<<" at nb="<<nb<<", i="<<i<<", j="<<j<<endl;
-	          cout<<std::setprecision(Nprec)<<"  where dBx="<<Binew[ip][j][0][nb]-Binew[ii][j][0][nb]<<", Bx1="<<Binew[ii][j][0][nb]<<" & Bx2="
-		      <<Binew[ip][j][0][nb]<<", dx="<<dom.dx[dom.lp[nb][0]]<<endl;
-	          cout<<std::setprecision(Nprec)<<"        dBy="<<Binew[i][jp][1][nb]-Binew[i][jj][1][nb]<<", By1="<<Binew[i][jj][1][nb]<<" & By2="
-		      <<Binew[i][jp][1][nb]<<", dy="<<dom.dy[dom.lp[nb][0]]<<endl;
+		  printf("CT error as div(B)=%f at nb=%d, i=%d, j=%d \n",divB,nb,i,j);
 	          throw exception();
 	        }
 	        // Update magnetic field with face centered values	    

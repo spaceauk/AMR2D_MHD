@@ -1,5 +1,5 @@
-8 8 8
+32 32 8
 1.0 1.0 
-0.44
-BWx MC RUSA
+0.5
+BWx MC HLLD
 

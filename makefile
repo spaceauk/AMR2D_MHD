@@ -6,14 +6,17 @@ OBJDIR = ./obj/
 
 CPPFLAGS = 
 
-CPP =
 CFLAGS = -O3 -std=c++17 -Wall -Wextra -march=native -funroll-loops
 # For debugging (gdb)
 CFLAGS += -g
 # For double precision
 CFLAGS += -DDOUBLE_PREC
 # For OpenMP
-# CFLAGS += -fopenmp
+ifdef USE_OMP
+	CPPFLAGS += -DOPENMP 
+	CFLAGS += -fopenmp 
+	LFLAGS += -fopenmp
+endif
 
 OBJ = main.o meshblock.o IC2Dtype.o MUSCL2D.o slopelimiter.o celledges.o riemannS.o savedata.o WENO2D_primvar.o parameters.o diffusivity.o timeIntegral.o
 EXEC = main.x
@@ -33,7 +36,7 @@ $(addprefix ./obj/, %.o): %.cpp
 
 # Link into an executable
 main: $(OBJS)
-	$(CMPR) $(OBJS) -o $(EXEC)
+	$(CMPR) $(LFLAGS) $(OBJS) -o $(EXEC)
 
 clean:
 	rm -f ./obj/*.o 

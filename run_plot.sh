@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Base name of the data file
-BASE_NAME="BWx023t_0.200250"
+BASE_NAME="BWx017t_0.200157"
 base_mesh="8x8_lv5_CT"
 slimiter="MC"
-rsolver="RUSA"
+rsolver="HLLD"
 
 datafile="/data/${BASE_NAME}.dat"
 

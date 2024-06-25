@@ -14,7 +14,7 @@
 #include "defs.hpp"
 real slopelimiter(string limiter,real r,real eta);
 
-real refineSL(real**** Q,int nx,int ny,int i,int j,int k,int nb,int signx,int signy) {
+real refineSL(real**** Q,int i,int j,int k,int nb,int signx,int signy) {
 	real r,phi;
 	real result=Q[i][j][k][nb];
 	// Slope limiter for refining
@@ -40,18 +40,20 @@ void refine(meshblock &dom, real**** Q, int nvar, int nb,
 	int ii,jj;
 	int signx,signy;
 	// Update U
+	#pragma omp parallel for collapse(3) default(none) \
+	   shared(dom,Q,nvar,nb,son1,son2,son3,son4) private(ii,jj,signx,signy)
 	for (int i=0;i<dom.nx;i++) {
 	  for (int j=0;j<dom.ny;j++) {
 	    for (int k=0;k<nvar;k++) {
 	      signx=(i+nghosts)%2; signy=(j+nghosts)%2;
 	      ii=(i+nghosts)/2; jj=(j+nghosts)/2;
-	      Q[i][j][k][son1]=refineSL(Q,dom.nx,dom.ny,ii,jj,k,nb,signx,signy);
+	      Q[i][j][k][son1]=refineSL(Q,ii,jj,k,nb,signx,signy);
 	      ii=(i-nghosts+2)/2+dom.nx2;	      
-	      Q[i][j][k][son2]=refineSL(Q,dom.nx,dom.ny,ii,jj,k,nb,signx,signy);
+	      Q[i][j][k][son2]=refineSL(Q,ii,jj,k,nb,signx,signy);
 	      ii=(i+nghosts)/2; jj=(j-nghosts+2)/2+dom.ny2;
-	      Q[i][j][k][son3]=refineSL(Q,dom.nx,dom.ny,ii,jj,k,nb,signx,signy);
+	      Q[i][j][k][son3]=refineSL(Q,ii,jj,k,nb,signx,signy);
 	      ii=(i-nghosts+2)/2+dom.nx2;
-	      Q[i][j][k][son4]=refineSL(Q,dom.nx,dom.ny,ii,jj,k,nb,signx,signy);
+	      Q[i][j][k][son4]=refineSL(Q,ii,jj,k,nb,signx,signy);
 	    }		
 	  }
 	}

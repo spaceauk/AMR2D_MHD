@@ -117,6 +117,7 @@ void meshblock::setType(string IC, string limiter, string fluxMth) {
 
 // Conversion between U & W
 void meshblock::U2W(string loc,int nb) {
+	#pragma omp parallel for collapse(2) default(none) shared(W,U,nb)
 	for (int i=0; i<nx; i++) {
 		for (int j=0; j<ny; j++) {
 			W[i][j][0][nb]=U[i][j][0][nb];
@@ -133,10 +134,8 @@ void meshblock::U2W(string loc,int nb) {
 			}
 			// Check for negative pressure
 			if (W[i][j][4][nb]<=0 and i>nxminb and i<nxmaxb and j>nyminb and j<nymaxb) {
-				cout<<"Error as zero/negative pressure! P="<<W[i][j][4][nb]<<" at i="<<i<<" & j="<<j<<". \n";
-				cout<<" - @ inner boundaries = "<<innerbounds[nb][2]<<endl;
-				cout<<" - Bx="<<W[i][j][5][nb]<<", By="<<W[i][j][6][nb]<<", Bz="<<W[i][j][7][nb]<<endl;
-				cout<<"U2W in function: "<<loc<<" at loop count="<<count<<endl;
+				printf("Error at U2W as zero/negative pressure! P=%f, at i=%d, j=%d & nb=%d \n",
+					W[i][j][4][nb],i,j,nb);
 				throw exception();
 			}
 		}
@@ -144,6 +143,7 @@ void meshblock::U2W(string loc,int nb) {
 }
 
 void meshblock::Us2W(string loc,int nb) {
+	#pragma omp parallel for collapse(2) default(none) shared(W,Us,nb)
         for (int i=0; i<nx; i++) {
                 for (int j=0; j<ny; j++) {
                         W[i][j][0][nb]=Us[i][j][0][nb];
@@ -160,16 +160,13 @@ void meshblock::Us2W(string loc,int nb) {
                         }
                         // Check for negative pressure
                         if (W[i][j][4][nb]<=0 and i>nxminb and i<nxmaxb and j>nyminb and j<nymaxb) {
-                                cout<<"Error as zero/negative pressure! P="<<W[i][j][4]<<" at i="<<i<<" & j="<<j<<". \n";
-                                cout<<"Us2W in function: "<<loc<<" at loop count="<<count<<endl;
-				cout<<" - Center: Bx="<<W[i][j][5][nb]<<", By="<<W[i][j][6][nb]<<", Bz="<<W[i][j][7][nb]<<endl;
-				if (CT_mtd) cout<<" - Edge  : Bx="<<Bi[i][j][0][nb]<<", By="<<Bi[i][j][1][nb]<<endl;
-                                cout<<"Inner domain:"<<nxmin<<", "<<nxmax<<", "<<nymin<<", "<<nymax<<endl;
+				printf("Error at Us2W as zero/negative pressure! P=%f, at i=%d, j=%d & nb=%d \n",
+                                        W[i][j][4][nb],i,j,nb);
                                 throw exception();
                         }
 			if (isnan(W[i][j][1][nb]) or isnan(W[i][j][2][nb]) or isnan(W[i][j][3][nb])) {
-				cout<<"NaN values encountered in Us2W! nb="<<nb<<", i="<<i<<", j="<<j<<
-					", Us="<<Us[i][j][0][nb]<<endl;
+				printf("NaN values encountered in Us2W! nb=%d, i=%d & j=%d while Us=%f \n",
+					nb,i,j,Us[i][j][0][nb]);
 				throw exception();
 				
 			}
@@ -178,6 +175,7 @@ void meshblock::Us2W(string loc,int nb) {
 }
 
 void meshblock::W2U(int nb) {
+	#pragma omp parallel for collapse(2) default(none) shared(W,U,nb)
 	for (int i=0; i<nx; i++) {
 		for (int j=0; j<ny; j++) {
 			U[i][j][0][nb]=W[i][j][0][nb];
@@ -194,29 +192,6 @@ void meshblock::W2U(int nb) {
 			}
 		}
 	}
-}
-
-
-// Calculate wave speed
-void meshblock::wavespeed(int i, int j,int nb) {
-	speed=sqrt(MAG(W[i][j][1][nb],W[i][j][2][nb],W[i][j][3][nb]));	
-	c=sqrt(gamma*W[i][j][4][nb]/W[i][j][0][nb]);
-	if (MAG_field) {
-		ca=sqrt((MAG(W[i][j][5][nb],W[i][j][6][nb],W[i][j][7][nb]))/W[i][j][0][nb]);
-		cax=sqrt((SQR(W[i][j][5][nb]))/W[i][j][0][nb]);
-		cay=sqrt((SQR(W[i][j][6][nb]))/W[i][j][0][nb]);
-		real intm=SQR(ca)+SQR(c);		
-		//cfx=sqrt(0.5*(SQR(c)+SQR(ca))+0.5*sqrt(SQR(intm)
-		//		-4*(SQR(c)*SQR(cax))));		
-		//cfy=sqrt(0.5*(SQR(c)+SQR(ca))+0.5*sqrt(SQR(intm)
-		//		-4*(SQR(c)*SQR(cay))));	
-		// Rewrite as +ve definite form
-		real intm1=SQR(ca)-SQR(c);
-		cfx=sqrt(0.5*(intm+sqrt(intm1*intm1+4.*SQR(ca)*
-			(SQR(ca)-SQR(cax)))));
-		cfy=sqrt(0.5*(intm+sqrt(intm1*intm1+4.*SQR(ca)*
-                        (SQR(ca)-SQR(cay)))));
-	} else {ca=c; cax=c; cay=c; cfx=c; cfy=c;}
 }
 
 

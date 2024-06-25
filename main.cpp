@@ -4,11 +4,13 @@
 #include<cstdlib>
 #include<math.h>
 #include<exception> // Call error exception
+#include<vector>		    
 
 #include "defs.hpp"
 #include "timeIntegral.hpp"
 
 void MUSCL2D(meshblock &dom, int nb, int step);
+void wavespeeds(vector<real> w,real gamma,int norm,real &a,real &ca,real &can,real &cf);
 void savearray(meshblock &dom, real*** array, string arrname);
 void save4py(meshblock &dom, int id, real t);
 // Multiple static grids related stuffs
@@ -20,12 +22,22 @@ void admesh(meshblock &dom);
 void CT2D(meshblock &dom,real**** q,real**** Bi,int step,real**** Binew);
 // Apply diffusivity to all variables for enhanced stability
 void diffusivity(real**** U,real eta,int nb,int nxmin,int nxmax,int nymin,int nymax,int nvar);
+// Check timing
+void reset_time(unordered_map<string,real> rtime);
 
 int main() {
 	meshblock dom; // Domain using arrays
 	string IC,limiter,fluxMth;
 	real CFL;
 	int nx, ny, nvar;
+
+#ifdef OPENMP
+	#pragma omp parallel
+	{
+		if (omp_get_thread_num()==0) cout<<"OpenMP activated: ";
+		printf("Process ID = %d\n",omp_get_thread_num());
+	}
+#endif
 
 	ifstream inputFile("input.txt");
 	if (inputFile.is_open()) {
@@ -108,6 +120,10 @@ int main() {
 	real lambda1=0, lambda2=0, lambda;
 	real t=0.0, dt=0.0;
         real res=0.;
+#ifdef OPENMP
+	dom.omp_time["main"]=omp_get_wtime();
+	reset_time(dom.omp_time);
+#endif	
 	while (t<=dom.tEnd and count<=2000) {
 		locate_bounds(dom);
 	        boundary(dom,dom.U,dom.nvar);	
@@ -120,7 +136,10 @@ int main() {
 			cout<<"("<<dom.innerbounds[nb][0]<<","<<dom.innerbounds[nb][1]<<","<<dom.innerbounds[nb][2]<<") ";
 		} cout<<" end;"<<endl;} 		
 
-		// RK2 1st step: update Us
+#ifdef OPENMP
+		dom.omp_time["MUSCL_RK2_1_tmp"]=omp_get_wtime();
+#endif		
+		// RK2 1st step: update Us		
 		for (int nb=0; nb<dom.lastActive; nb++) {
    		  if (dom.leafs[nb]) {
 		    MUSCL2D(dom,nb,1);		
@@ -146,7 +165,12 @@ int main() {
 		}
 		// Boundary conditions on Us
                 boundary(dom,dom.Us,dom.nvar);
-
+#ifdef OPENMP
+                dom.omp_time["MUSCL_RK2_1_tmp"]-=omp_get_wtime();
+		dom.omp_time["MUSCL_RK2_1"]-=dom.omp_time["MUSCL_RK2_1_tmp"];
+		dom.omp_time["MUSCL_RK2_2_tmp"]=omp_get_wtime();
+#endif		
+		
 		// RK2 2nd step: update U
 		for (int nb=0; nb<dom.lastActive; nb++) {
 		  if (dom.leafs[nb]) {
@@ -175,18 +199,28 @@ int main() {
 		}
 		// Boundary conditions on U
                 boundary(dom,dom.U,dom.nvar);
+#ifdef OPENMP
+                dom.omp_time["MUSCL_RK2_2_tmp"]-=omp_get_wtime();
+                dom.omp_time["MUSCL_RK2_2"]-=dom.omp_time["MUSCL_RK2_2_tmp"];
+#endif		
 
 		// Calculate time for advancement		
 		lambda=1.E6;
+		real a,ca,can,cf;
 		for (int nb=0; nb<dom.lastActive; nb++) {
 		  if (dom.leafs[nb]) {
 		    dom.U2W("main",nb);
-		    lambda1=0.; lambda2=0.; 
+		    lambda1=0.; lambda2=0.;
+		    #pragma omp parallel for collapse(2) default(none) shared(dom,nb,lambda1,lambda2) \
+                                        private(a,ca,can,cf) 
 		    for (int i=dom.nxmin; i<=dom.nxmax; i++) {
 		      for (int j=dom.nymin; j<=dom.nymax; j++) {
-		        dom.wavespeed(i,j,nb);
-			lambda1=max(lambda1,dom.speed+abs(dom.cfx));
-			lambda2=max(lambda2,dom.speed+abs(dom.cfy));				
+			vector<real> w(8);
+			for (int k=0; k<dom.nvar; k++) {w[k]=dom.W[i][j][k][nb];}
+			wavespeeds(w,dom.gamma,5,a,ca,can,cf);
+			lambda1=max(lambda1,abs(dom.W[i][j][0][nb])+cf);
+			wavespeeds(w,dom.gamma,6,a,ca,can,cf);
+			lambda2=max(lambda2,abs(dom.W[i][j][1][nb])+cf);				
 		      }
 		    }		 		
 		    lambda1=max(lambda1,lambda2);
@@ -210,6 +244,15 @@ int main() {
 		// Update mesh
 		if (maxlevs>1) {admesh(dom);}
 	}
+#ifdef OPENMP
+	dom.omp_time["main"]=omp_get_wtime()-dom.omp_time["main"];
+	printf("%-12s%-12s%-12s%-12s%-12s\n", "Timing:", "Main", "MUSCL", "CellEdge", "RS");
+	printf("%-12s%-12.6f%-12.6f%-12.6f%-12.6f\n","",
+           dom.omp_time["main"],
+           dom.omp_time["MUSCL_RK2_1"] + dom.omp_time["MUSCL_RK2_2"],
+           dom.omp_time["celledge"],
+           dom.omp_time["RS"]);
+#endif	
 
 	// Output data
 	for (int nb=0;nb<dom.lastActive;nb++) {

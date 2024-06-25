@@ -39,6 +39,8 @@ void refinefc(meshblock &dom, real**** Bi, int nvar, int nb,
 	int ii,jj;
 	int signx,signy;
 	// Update U
+	#pragma omp parallel for collapse(3) default(none) \
+           shared(dom,Bi,nvar,nb,son1,son2,son3,son4) private(ii,jj,signx,signy)
 	for (int i=0;i<dom.nx;i++) {
 	  for (int j=0;j<dom.ny;j++) {
 	    for (int k=0;k<nvar;k++) {

@@ -3,6 +3,16 @@
 #include "defs.hpp"
 
 
+void reset_time(unordered_map<string,real> rtime) {
+	rtime["MUSCL_RK2_1"]=0.;
+	rtime["MUSCL_RK2_2"]=0.;
+	rtime["celledge"]=0.;
+	rtime["RS"]=0.;
+	rtime["coarsen"]=0.;
+	rtime["refine"]=0.;
+	if (CT_mtd) rtime["CT2D"]=0.;
+}
+
 void setBCs(int nx,int ny,int nvar,int nb,real**** Q) {
 	for (int k=0; k<nvar; k++) {
                 for (int i=0;i<nx;i++) {Q[i][0][k][nb]=Q[i][1][k][nb];

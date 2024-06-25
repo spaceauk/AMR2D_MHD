@@ -9,6 +9,8 @@ void coarsen(meshblock &dom, real**** Q, int nvar, int dad, int son1, int son2,
 	int i1, i2, j1, j2;
 	int nx2i, ny2j;
 	// The block itself
+	#pragma omp parallel for collapse(2) default(none) \
+	   shared(dom,Q,nvar,dad,son1,son2,son3,son4) private(i1,i2,j1,j2,nx2i,ny2j)
 	for (int i=dom.nxmin;i<=dom.nx2;i++) {
 	  for (int j=dom.nymin;j<=dom.ny2;j++) {
 	    i1=2*i-dom.nxmin;

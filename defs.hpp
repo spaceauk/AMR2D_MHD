@@ -5,6 +5,11 @@
 #include <iostream>
 using namespace std;
 
+#ifdef OPENMP
+#include<omp.h>
+#endif
+#include<unordered_map>
+
 // Declarations or constants
 #ifdef DOUBLE_PREC
 using real = double;
@@ -20,7 +25,7 @@ using real = float;
 
 // Global variables
 const int nghosts=2;   // # of ghost cells
-const int maxlevs=5;
+const int maxlevs=3;
 const int nbroots=4;    // # of root blocks
 const int maxblocks= nbroots>pow(nbroots,maxlevs-1) ? nbroots : pow(4,maxlevs)*2;
 // (a) Additional features
@@ -55,6 +60,10 @@ class meshblock {
                 real* dy;
                 int nbleafs, oldnbleafs;
                 int** innerbounds;
+		// Timing to check performance
+#ifdef OPENMP		 
+		unordered_map<string,real> omp_time;
+#endif
 
 		// Related arrays
 		real**** U;      // Conservative variables 
@@ -79,8 +88,6 @@ class meshblock {
 	
 		// Calulated quantities after input
 		real dt;   // Constant timing used throughout regardless of different refinement level
-		real speed, c;
-		real ca, cax, cay, cfx, cfy, beta; // When there is M-field
 		int count;
 		// For post-processing
 		string fname;	

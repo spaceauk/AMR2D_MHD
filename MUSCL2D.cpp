@@ -18,6 +18,9 @@ void MUSCL2D(meshblock &dom, int nb, int step) {
 		dom.Us2W("MUSCL",nb);
 	}
 
+#ifdef OPENMP
+	dom.omp_time["celledge_tmp"]=omp_get_wtime();
+#endif	
 	if (dom.limiter=="WENO3") {
 		WENO2D_3rd(dom,"x",nb);
 		WENO2D_3rd(dom,"y",nb);
@@ -29,8 +32,16 @@ void MUSCL2D(meshblock &dom, int nb, int step) {
 		// Apply slope limiter
 		celledges(dom,nb,step);
 	}
+#ifdef OPENMP
+        dom.omp_time["celledge_tmp"]-=omp_get_wtime();
+	dom.omp_time["celledge"]-=dom.omp_time["celledge_tmp"];
+#endif
 
 	if (CT_mtd) {
+#ifdef OPENMP
+		dom.omp_time["CT2D_tmp"]=omp_get_wtime();
+#endif		
+		#pragma omp parallel for collapse(2) default(none) shared(dom,nb,step) 
 		for (int i=0; i<dom.nx-1; i++) { 
                 	for (int j=0; j<dom.ny-1; j++) {
                         	// Constrained transport method: Assumed magnetic field indices from 5 to 7
@@ -40,22 +51,25 @@ void MUSCL2D(meshblock &dom, int nb, int step) {
                                 dom.wyR[i][j][6]= step==1 ? dom.Bi[i][j][1][nb] : dom.Bis[i][j][1][nb];
 			}
 		}
+#ifdef OPENMP
+		dom.omp_time["CT2D_tmp"]-=omp_get_wtime();
+		dom.omp_time["CT2D"]-=dom.omp_time["CT2D_tmp"];
+#endif		
 	}
-                                                                    
-	vector<real> wL(8),wR(8),flux(8);
+
+#ifdef OPENMP
+	dom.omp_time["RS_tmp"]=omp_get_wtime();
+#endif	
+	#pragma omp parallel for collapse(2) default(none) shared(dom,nb) 
 	for (int i=dom.nxminb; i<=dom.nxmax; i++) {
 		for (int j=dom.nyminb; j<=dom.nymax; j++) {
+			vector<real> wL(8),wR(8),flux(8);
 			int ip=i+1;
 			int jp=j+1;
 			// (a) In x-direction-----------------------------------------------------------------------
 			for (int k=0; k<dom.nvar; k++) {
 				wL[k]=dom.wxL[i][j][k];
 				wR[k]=dom.wxR[ip][j][k];
-			}
-			if (wL[4]<0) {
-				cout<<"Negative pressure at i="<<i<<", j="<<j<<", nb="<<nb<<endl;
-				cout<<"pL="<<wL[4]<<", pR="<<wR[4]<<endl;
-				throw exception();
 			}
 			// Compute flux at i+1/2
 			riemannS(dom.fluxMth,wL,wR,dom.gamma,'x',flux);
@@ -65,21 +79,14 @@ void MUSCL2D(meshblock &dom, int nb, int step) {
 			if (isnan(flux[k])) {
 				real x=((dom.nxmin+dom.icoord[nb][0]-nghosts)+0.5)*dom.dx[dom.lp[nb][0]] - dom.dx[0];
 				real y=((dom.nymin+dom.icoord[nb][1]-nghosts)+0.5)*dom.dy[dom.lp[nb][0]] - dom.dy[0];
-				cout<<"At X: nb="<<nb<<", i="<<i<<", j="<<j<<", flux["<<k<<"]="<<flux[k]
-					<<", (x,y)=("<<x<<","<<y<<")"<<endl;
-				cout<<"inner_bounds=("<<dom.innerbounds[nb][0]<<","<<dom.innerbounds[nb][1]<<","<<
-					dom.innerbounds[nb][2]<<")"<<endl;
-				cout<<"W=("; for (int kk=0;kk<dom.nvar;kk++) {cout<<dom.W[i][j][kk][nb]<<" ";} cout<<")"<<endl;
-				cout<<"dwdx=("; for (int kk=0;kk<dom.nvar;kk++) {cout<<dom.dwdx[i][j][kk]<<" ";} cout<<")"<<endl;
-				cout<<"wL=("; for (int kk=0;kk<dom.nvar;kk++) {cout<<wL[kk]<<" ";} cout<<")"<<endl;
-				cout<<"wR=("; for (int kk=0;kk<dom.nvar;kk++) {cout<<wR[kk]<<" ";} cout<<")"<<endl;
-				cout<<"flux=("; for (int kk=0;kk<dom.nvar;kk++) {cout<<flux[kk]<<" ";} cout<<")"<<endl;	
+				printf("At X: nb=%d, i=%d, j=%d, flux[%d]=%f, (x,y)=(%f,%f), pL=%f & pR=%f \n",
+					nb,i,j,k,flux[k],x,y,wL[4],wR[4]);
 				throw exception(); }
 			}
 			// Ensure divergence free magnetic field
 			if (CT_mtd and wL[5]-wR[5]!=0) {
-				cout<<std::setprecision(Nprec)<<"diffBx not equal to zero! BxL="<<wL[5]<<", BxR="<<wR[5]
-					<<", at i="<<i<<", j="<<j<<", nb="<<nb<<endl;
+				printf("diffBx not equal to zero! BxL=%f, BxR=%f at i=%d, j=%d, nb=%d \n",
+					wL[5],wR[5],i,j,nb);
 				throw exception();
 			}
 
@@ -96,22 +103,19 @@ void MUSCL2D(meshblock &dom, int nb, int step) {
 			if (isnan(flux[k])) {
 				real x=((dom.nxmin+dom.icoord[nb][0]-nghosts)+0.5)*dom.dx[dom.lp[nb][0]] - dom.dx[0];
 				real y=((dom.nymin+dom.icoord[nb][1]-nghosts)+0.5)*dom.dy[dom.lp[nb][0]] - dom.dy[0];
-				cout<<"At Y: nb="<<nb<<", i="<<i<<", j="<<j<<", flux["<<k<<"]="<<flux[k]
-					<<", (x,y)=("<<x<<","<<y<<")"<<endl;
-                                cout<<"inner_bounds=("<<dom.innerbounds[nb][0]<<","<<dom.innerbounds[nb][1]<<","<<
-                                        dom.innerbounds[nb][2]<<")"<<endl;
-                                cout<<"W=("; for (int kk=0;kk<dom.nvar;kk++) {cout<<dom.W[i][j][kk][nb]<<" ";} cout<<")"<<endl;
-                                cout<<"dwdx=("; for (int kk=0;kk<dom.nvar;kk++) {cout<<dom.dwdy[i][j][kk]<<" ";} cout<<")"<<endl;
-                                cout<<"wL=("; for (int kk=0;kk<dom.nvar;kk++) {cout<<wL[kk]<<" ";} cout<<")"<<endl;
-                                cout<<"wR=("; for (int kk=0;kk<dom.nvar;kk++) {cout<<wR[kk]<<" ";} cout<<")"<<endl;
-                                cout<<"flux=("; for (int kk=0;kk<dom.nvar;kk++) {cout<<flux[kk]<<" ";} cout<<")"<<endl;
+				printf("At Y: nb=%d, i=%d, j=%d, flux[%d]=%f, (x,y)=(%f,%f) \n",
+					nb,i,j,k,flux[k],x,y);
 				throw exception(); }
 			}
                         if (CT_mtd and wL[6]-wR[6]!=0) {
-                                cout<<std::setprecision(Nprec)<<"diffBy not equal to zero! ByL="<<wL[6]<<", ByR="<<wR[6]
-                                        <<", at i="<<i<<", j="<<j<<", nb="<<nb<<endl;
+				printf("diffBy not equal to zero! ByL=%f, ByR=%f, at i=%d, j=%d, nb=%d \n",
+					wL[6],wR[6],i,j,nb);
                                 throw exception();
                         }
 		}
 	}
+#ifdef OPENMP
+	dom.omp_time["RS_tmp"]-=omp_get_wtime();
+	dom.omp_time["RS"]-=dom.omp_time["RS_tmp"];
+#endif
 }

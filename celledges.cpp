@@ -4,18 +4,19 @@ real slopelimiter(string limiter,real r,real eta);
 
 void celledges(meshblock &dom,int nb,int step) {
 	// Obtain cell differences
+	int im,jm,ii,jj;
+	#pragma omp parallel for collapse(3) default(none) shared(dom,nb) private(im,jm,ii,jj)
 	for (int i=0; i<dom.nx; i++) {
 		for (int j=0; j<dom.ny; j++) {
 			for (int k=0; k<dom.nvar; k++) {
-				int im= i>0 ? i-1 : i;
-				int jm= j>0 ? j-1 : j;
-				dom.dwdx[i][j][k]=dom.W[i][j][k][nb]-dom.W[im][j][k][nb];
-				dom.dwdy[i][j][k]=dom.W[i][j][k][nb]-dom.W[i][jm][k][nb];
+				im= i>0 ? i-1 : i;
+				jm= j>0 ? j-1 : j;
+				ii=im+1; jj=jm+1;
+				dom.dwdx[i][j][k]=dom.W[ii][j][k][nb]-dom.W[im][j][k][nb];
+				dom.dwdy[i][j][k]=dom.W[i][jj][k][nb]-dom.W[i][jm][k][nb];
 				if (isnan(dom.dwdx[i][j][k]) or isnan(dom.dwdy[i][j][k])) {
-					cout<<"Nan values encountered - dx="<<dom.dwdx[i][j][k]<<", dy="<<dom.dwdy[i][j][k]<<
-						" at i="<<i<<", j="<<j<<", k="<<k<<", nb="<<nb<<endl;
-					cout<<"Wim="<<dom.W[im][j][k][nb]<<", W="<<dom.W[i][j][k][nb]<<", Wjm="
-						<<dom.W[i][jm][k][nb]<<", Us="<<dom.Us[i][j][k][nb]<<", U="<<dom.U[i][j][k][nb]<<endl;
+					printf("NaN values encountered where dx=%f, dy=%f at i=%d, j=%d, k=%d, nb=%d \n",
+					      dom.dwdx[i][j][k],dom.dwdy[i][j][k],i,j,k,nb);
 					throw exception();					
 				}				
 			}
@@ -25,6 +26,7 @@ void celledges(meshblock &dom,int nb,int step) {
 	// Obtain cell left and right edges
 	real r, phi;
 	real eta, smoothr=1; // Smoothness indicator for Compact 3rd order scheme (M.Cada)
+	#pragma omp parallel for collapse(3) default(none) shared(dom,nb) private(r,phi,eta,smoothr)
 	for (int i=0; i<dom.nx-1; i++) { // For x
 		for (int j=0; j<dom.ny; j++) {
 			for (int k=0; k<dom.nvar; k++) {
@@ -40,13 +42,14 @@ void celledges(meshblock &dom,int nb,int step) {
 				phi=slopelimiter(dom.limiter,r,eta);
 				dom.wxR[i][j][k]=dom.W[i][j][k][nb]-0.5*phi*dom.dwdx[i+1][j][k];
 				if (isnan(dom.wxL[i][j][k])) {
-					cout<<"celledge -> nan! @ i+1="<<i+1<<", j="<<j<<", k="<<k
-					<<", nb="<<nb<<", dwdx="<<dom.dwdx[i+1][j][k]<<", W="<<dom.W[i+1][j][k][nb]<<endl;
+					printf("celledge -> nan @ i+1=%d, j=%d, k=%d, nb=%d, dwdx=%f, W=%f \n",
+						i+1,j,k,nb,dom.dwdx[i+1][j][k],dom.W[i+1][j][k][nb]);
 					throw exception();}
 			}
 		}
 	}
 
+	#pragma omp parallel for collapse(3) default(none) shared(dom,nb) private(r,phi,eta,smoothr)
 	for (int i=0; i<dom.nx; i++) { // For y
 		for (int j=0; j<dom.ny-1; j++) {
 			for (int k=0; k<dom.nvar; k++) {

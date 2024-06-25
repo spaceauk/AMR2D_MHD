@@ -22,6 +22,9 @@ void admesh(meshblock &dom) {
 	// Mark for refining on proximity of higher resolution grid
 	critneighup(dom.lp,dom.iref,dom.lastActive); 
 
+#ifdef OPENMP
+	dom.omp_time["refine_tmp"]=omp_get_wtime();
+#endif	
 	// Refine marked blocks by order of levels to ensure neighbours are updated correctly
 	for (int nl=0; nl<maxlevs-1; nl++) {
 	  for (int nb=0; nb<dom.lastActive; nb++) {
@@ -54,11 +57,18 @@ void admesh(meshblock &dom) {
 	  }
 	} 
 	if (!print) cout<<endl;
+#ifdef OPENMP
+	dom.omp_time["refine_tmp"]-=omp_get_wtime();
+	dom.omp_time["refine"]-=dom.omp_time["refine_tmp"];
+#endif	
 
 	// Verify that the blocks to be coarsen will have max of 1 level difference only
 	critneighdown(dom.lp,dom.leafs,dom.icoarse,dom.lastActive);
 
 	print=true;
+#ifdef OPENMP
+	dom.omp_time["coarsen_tmp"]=omp_get_wtime();
+#endif	
 	// Coarsen in order of levels	
 	for (int nl=maxlevs-1;nl>=1;nl--) {
 	  for (int nb=0;nb<dom.lastActive;nb++) {
@@ -83,5 +93,9 @@ void admesh(meshblock &dom) {
 	  }
 	} 
 	if (!print) cout<<endl;
+#ifdef OPENMP
+	dom.omp_time["coarsen_tmp"]-=omp_get_wtime();
+	dom.omp_time["coarsen"]-=dom.omp_time["coarsen_tmp"];
+#endif	
 
 }
