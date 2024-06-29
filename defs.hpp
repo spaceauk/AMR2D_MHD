@@ -25,7 +25,7 @@ using real = float;
 
 // Global variables
 const int nghosts=2;   // # of ghost cells
-const int maxlevs=3;
+const int maxlevs=5;
 const int nbroots=4;    // # of root blocks
 const int maxblocks= nbroots>pow(nbroots,maxlevs-1) ? nbroots : pow(4,maxlevs)*2;
 // (a) Additional features

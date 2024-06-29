@@ -2,6 +2,7 @@
 #include "defs.hpp"
 
 real sum_irjr(real**** U, int nb, int k, int i1, int i2, int j1, int j2);
+void extboundary(meshblock &dom,real**** Q,int nvar);
 
 void boundary(meshblock &dom,real**** Q,int nvar) {
 
@@ -10,51 +11,8 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 	  int nbs=dom.innerbounds[nb][0];	 
 	  int n1,n2;
 	  int ii, jj;
+	  int n3, n4;
 	  switch(dom.innerbounds[nb][2]) {
-		  case -1: // Left Box boundary
-			  ii=dom.nxmin+(nghosts-1);
-			  for (int i=0;i<nghosts;i++) {
- 			    for (int j=0;j<dom.ny;j++) {
-			      for (int k=0;k<nvar;k++) {
-			        Q[i][j][k][nbs]=Q[ii][j][k][nbs];
-			      } 
-			    }
-			    ii--;
-			  }
-			  break;
-		  case -2: // Right Box boundary
-			  ii=dom.nxmax;
-			  for (int i=dom.nxp1;i<dom.nx;i++) {
- 			    for (int j=0;j<dom.ny;j++) {
-                              for (int k=0;k<nvar;k++) {
-                                Q[i][j][k][nbs]=Q[ii][j][k][nbs];
-                              }
-                            }
-			    ii--;
-			  }
-			  break;
-		  case -3: // Bottom Box boundary
-			  jj=dom.nymin+(nghosts-1);
-			  for (int j=0;j<nghosts;j++) {
- 			    for (int i=0;i<dom.nx;i++) {
-		              for (int k=0;k<nvar;k++) {
-		                Q[i][j][k][nbs]=Q[i][jj][k][nbs];
-			      }
-			    }
-			    jj--;
-			  }
-			  break;
-		  case -4: // Top Box boundary
-			  jj=dom.nymax;
-			  for (int j=dom.nyp1;j<dom.ny;j++) {
-                            for (int i=0;i<dom.nx;i++) {				    			      
-                              for (int k=0;k<nvar;k++) {
-                                Q[i][j][k][nbs]=Q[i][jj][k][nbs];
-                              }
-                            }
-			    jj--;
-			  }
-			  break;
 		//----------------------------------------------------LEFT-----------------------------------------------------
 		  case 1: // Left @ same resolution
 			  n1=dom.innerbounds[nb][1];	 
@@ -79,7 +37,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			  n1=dom.innerbounds[nb][1];
 			  n2=n1+2;
 			  // Own's left
-			  for (int j=nghosts/2;j<=dom.ny2+nghosts/2;j++) {
+			  for (int j=dom.nymin;j<=dom.ny2;j++) {
 			    int ny2j=dom.ny2+j-1-(nghosts-2);
 			    for (int i=0;i<nghosts;i++) {
 			      int i1=2*(i-nghosts/2)-nghosts/2+dom.nxmax;
@@ -87,20 +45,65 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			      int j1=2*j-dom.nymin; 
 			      int j2=j1+1;
  			      for (int k=0;k<nvar;k++) {
-			        if (j<=dom.ny2) Q[i][j][k][nbs]=0.25*sum_irjr(Q,n1,k,i1,i2,j1,j2);
-			        if (j>=dom.nymin) Q[i][ny2j][k][nbs]=0.25*sum_irjr(Q,n2,k,i1,i2,j1,j2);
+			        Q[i][j][k][nbs]=0.25*sum_irjr(Q,n1,k,i1,i2,j1,j2);
+			        Q[i][ny2j][k][nbs]=0.25*sum_irjr(Q,n2,k,i1,i2,j1,j2);
 			      }
 			    }
 			  }
-			  for (int k=0;k<nvar;k++) {
-			    for (int i=0;i<nghosts/2;i++) {
-			      // Account for non-overlapping ghost cells due to neighbouring refined block
-			      for (int j=0;j<nghosts/2;j++) {				
-			        Q[i][j][k][nbs]=Q[i][nghosts/2][k][nbs];
-			        Q[i][dom.ny-1-j][k][nbs]=Q[i][dom.ny-1-nghosts/2][k][nbs];
-			      }
+			  n3=dom.lp[n1][6]; // Bottom corner
+			  if (n3==-1) { // Means coarser corner			    
+			    n3=dom.lp[dom.lp[n1][1]][6];
+			    for (int k=0;k<nvar;k++) {
+                              for (int i=0;i<nghosts;i++) {
+                                for (int j=0;j<nghosts;j++) {
+				  ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
+				  Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+				}}}
+			  } else {
+			    if (!dom.leafs[n3]) { // Means more refined corner
+			      n3=dom.lp[n3][2]+3;
+			      for (int k=0;k<nvar;k++) {
+                                for (int i=0;i<nghosts;i++) {
+                                  for (int j=0;j<nghosts;j++) {
+                                    ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymax-nghosts*2+2*j+1;
+                                    Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
+                                  }}}
+			    } else { // same res corner
+		              for (int k=0;k<nvar;k++) {
+                                for (int i=0;i<nghosts;i++) {
+                                  for (int j=0;j<nghosts;j++) {
+				    ii=dom.nxmax-nghosts+(i+1); jj=dom.nymax-nghosts+(j+1);
+                                    Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+			          }}}
 			    }
 			  }
+			  n4=dom.lp[n2][7]; // Top corner
+			  if (n4==-1) { // Means coarser corner
+                            n4=dom.lp[dom.lp[n2][1]][7];
+                            for (int k=0;k<nvar;k++) {
+                              for (int i=0;i<nghosts;i++) {
+                                for (int j=0;j<nghosts;j++) {
+                                  ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymin+nghosts/2-(j+2)/2;
+                                  Q[i][dom.ny-1-j][k][nbs]=Q[ii][jj][k][n4];
+                                }}}
+                          } else {
+                            if (!dom.leafs[n4]) { // Means more refined corner
+                              n4=dom.lp[n4][2]+1;
+                              for (int k=0;k<nvar;k++) {
+                                for (int i=0;i<nghosts;i++) {
+                                  for (int j=0;j<nghosts;j++) {
+                                    ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymin+nghosts*2-2*(j+1);
+                                    Q[i][dom.ny-1-j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
+                                  }}}
+                            } else { // same res corner
+                              for (int k=0;k<nvar;k++) {
+                                for (int i=0;i<nghosts;i++) {
+                                  for (int j=0;j<nghosts;j++) {
+                                    ii=dom.nxmax-nghosts+(i+1); jj=dom.nymin+nghosts-(j+1);
+                                    Q[i][dom.ny-1-j][k][nbs]=Q[ii][jj][k][n4];
+                                  }}}
+                            }
+                          }			  
 			  // Neighbor's right
 			  // to finer level (0th order interpolation)
 			  for (int i=1;i<=nghosts;i++) {
@@ -137,26 +140,72 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			  n2=n1+2;
 			  // Own's right
 			  for (int i=dom.nxp1;i<dom.nx;i++) {
-			    for (int j=nghosts;j<=dom.ny2+nghosts/2;j++) {
+			    for (int j=dom.nymin;j<=dom.ny2;j++) {
 			      int i1=2*(i-dom.nxmax+(nghosts/2-1));
 			      int i2=i1+1;
 		              int j1=2*j-dom.nymin;
 			      int j2=j1+1;
 			      int ny2j=dom.ny2+j-1-(nghosts-2);
  			      for (int k=0;k<nvar;k++) {
-			        if (j<=dom.ny2) Q[i][j][k][nbs]=0.25*sum_irjr(Q,n1,k,i1,i2,j1,j2);
-			        if (j>=dom.nymin) Q[i][ny2j][k][nbs]=0.25*sum_irjr(Q,n2,k,i1,i2,j1,j2);
+			        Q[i][j][k][nbs]=0.25*sum_irjr(Q,n1,k,i1,i2,j1,j2);
+			        Q[i][ny2j][k][nbs]=0.25*sum_irjr(Q,n2,k,i1,i2,j1,j2);
 			      }
 			    }
 			  }
-			  for (int k=0;k<nvar;k++) {
-			    for (int i=dom.nx+nghosts/2-1;i<dom.nx;i++) {
-			      for (int j=0;j<nghosts/2;j++) {
-			        Q[i][j][k][nbs]=Q[i][nghosts/2][k][nbs];
-			        Q[i][dom.ny-1-j][k][nbs]=Q[i][dom.ny-1-nghosts/2][k][nbs];
-			      }
-			    }
-			  }
+			  n3=dom.lp[n1][6]; // Bottom corner
+			  if (n3==-1) { // Means coarser corner
+			    n3=dom.lp[dom.lp[n1][1]][6];
+			    for (int k=0;k<nvar;k++) {
+                              for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                for (int j=0;j<nghosts;j++) {
+				  ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
+				  Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+				}}}
+			  } else {
+			    if (!dom.leafs[n3]) { // Means more refined corner
+			      n3=dom.lp[n3][2]+2;
+			      for (int k=0;k<nvar;k++) {
+                                for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                  for (int j=0;j<nghosts;j++) {
+                                    ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nymax-nghosts*2+2*j+1;
+                                    Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
+                                  }}}
+			    } else { // same res corner
+		              for (int k=0;k<nvar;k++) {
+                                for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                  for (int j=0;j<nghosts;j++) {
+				    ii=dom.nxminb+(i-dom.nxmax); jj=dom.nymax-nghosts+(j+1);
+                                    Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+			          }}}
+			    }			    		    
+			  }			  
+			  n4=dom.lp[n2][7]; // Top corner
+			  if (n4==-1) { // Means coarser corner
+                            n4=dom.lp[dom.lp[n2][1]][7];
+                            for (int k=0;k<nvar;k++) {
+                              for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                for (int j=0;j<nghosts;j++) {
+                                  ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nymin+nghosts/2-(j+2)/2;
+                                  Q[i][dom.ny-1-j][k][nbs]=Q[ii][jj][k][n4];
+                                }}}
+                          } else {
+                            if (!dom.leafs[n4]) { // Means more refined corner
+                              n4=dom.lp[n4][2];
+                              for (int k=0;k<nvar;k++) {
+                                for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                  for (int j=0;j<nghosts;j++) {
+                                    ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nymin+nghosts*2-2*(j+1);
+                                    Q[i][dom.ny-1-j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
+                                  }}}
+                            } else { // same res corner
+                              for (int k=0;k<nvar;k++) {
+                                for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                  for (int j=0;j<nghosts;j++) {
+                                    ii=dom.nxminb+(i-dom.nxmax); jj=dom.nymin+nghosts-(j+1);
+                                    Q[i][dom.ny-1-j][k][nbs]=Q[ii][jj][k][n4];
+                                  }}}
+                            }
+                          }
 			  // Neighbor's left
 			  // to finer level (0th order interpolation)
 			  for (int i=1;i<=nghosts;i++) {
@@ -192,7 +241,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			  n1=dom.innerbounds[nb][1];
 			  n2=n1+1;
 			  // Own's bottom
-			  for (int i=nghosts/2;i<=dom.nx2+nghosts/2;i++) {
+			  for (int i=dom.nxmin;i<=dom.nx2;i++) {
 			    int nx2i=dom.nx2+i-1-(nghosts-2);
 			    for (int j=0;j<nghosts;j++) {
 			      int i1=2*i-dom.nxmin;
@@ -200,19 +249,65 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			      int j1=2*(j-nghosts/2)-nghosts/2+dom.nymax;
 			      int j2=j1+1;
  			      for (int k=0;k<nvar;k++) {
-			        if (i<=dom.nx2) Q[i][j][k][nbs]=0.25*sum_irjr(Q,n1,k,i1,i2,j1,j2);
-			        if (i>=dom.nxmin) Q[nx2i][j][k][nbs]=0.25*sum_irjr(Q,n2,k,i1,i2,j1,j2);
+			        Q[i][j][k][nbs]=0.25*sum_irjr(Q,n1,k,i1,i2,j1,j2);
+			        Q[nx2i][j][k][nbs]=0.25*sum_irjr(Q,n2,k,i1,i2,j1,j2);
 			      }
 			    }
 			  }
-			  for (int k=0;k<nvar;k++) {
-			    for (int j=0;j<nghosts/2;j++) {
-			      for (int i=0;i<nghosts/2;i++) {
-			        Q[i][j][k][nbs]=Q[nghosts/2][j][k][nbs];
- 			        Q[dom.nx-1-i][j][k][nbs]=Q[dom.nx-1-nghosts/2][j][k][nbs];
-			      }
+			  n3=dom.lp[n1][4]; // left corner
+			  if (n3==-1) { // Means coarser corner or grid boundary (will be accounted for in extboundary)
+			    n3=dom.lp[dom.lp[n1][1]][4];
+		 	    for (int k=0;k<nvar;k++) {
+                              for (int i=0;i<nghosts;i++) {
+                                for (int j=0;j<nghosts;j++) {
+				  ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
+				  Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+				}}}
+			  } else {
+			    if (!dom.leafs[n3]) { // Means more refined corner
+			      n3=dom.lp[n3][2]+3;
+			      for (int k=0;k<nvar;k++) {
+                                for (int i=0;i<nghosts;i++) {
+                                  for (int j=0;j<nghosts;j++) {
+                                    ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymax-nghosts*2+2*j+1;
+                                    Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
+                                  }}}
+			    } else { // same res corner
+		              for (int k=0;k<nvar;k++) {
+                                for (int i=0;i<nghosts;i++) {
+                                  for (int j=0;j<nghosts;j++) {
+				    ii=dom.nxmax-nghosts+(i+1); jj=dom.nymax-nghosts+(j+1);
+                                    Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+			          }}}
 			    }
 			  }
+			  n4=dom.lp[n2][5]; // right corner
+			  if (n4==-1) { // Means coarser corner
+			    n4=dom.lp[dom.lp[n2][1]][5];
+                            for (int k=0;k<nvar;k++) {
+                              for (int i=0;i<nghosts;i++) {
+                                for (int j=0;j<nghosts;j++) {
+				  ii=dom.nxmin+nghosts/2-(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
+                                  Q[dom.nx-1-i][j][k][nbs]=Q[ii][jj][k][n4];
+                                }}}
+                          } else {
+                            if (!dom.leafs[n4]) { // Means more refined corner
+                              n4=dom.lp[n4][2]+2;
+                              for (int k=0;k<nvar;k++) {
+                                for (int i=0;i<nghosts;i++) {
+                                  for (int j=0;j<nghosts;j++) {
+				    ii=dom.nxmin+nghosts*2-2*(i+1); jj=dom.nymax-nghosts*2+2*j+1;
+                                    Q[dom.nx-1-i][j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
+                                  }}}
+                            } else { // same res corner
+                              for (int k=0;k<nvar;k++) {
+                                for (int i=0;i<nghosts;i++) {
+                                  for (int j=0;j<nghosts;j++) {
+				    ii=dom.nxmin+nghosts-(i+1); jj=dom.nymax-nghosts+(j+1);
+                                    Q[dom.nx-1-i][j][k][nbs]=Q[ii][jj][k][n4];
+                                  }}}
+                            }
+                          }
 			  // Neighbor's top
 			  // to finer level (0th order interpolation)
 			  for (int j=1;j<=nghosts;j++) {
@@ -248,7 +343,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			  n1=dom.innerbounds[nb][1];
 			  n2=n1+1;
 			  // Own's top
-			  for (int i=nghosts/2;i<=dom.nx2+nghosts/2;i++) {
+			  for (int i=dom.nxmin;i<=dom.nx2;i++) {
 			    for (int j=dom.nyp1;j<dom.ny;j++) {
 		              int i1=2*i-dom.nxmin;
 			      int i2=i1+1;
@@ -256,19 +351,65 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			      int j2=j1+1;
 			      int nx2i=dom.nx2+i-1-(nghosts-2);
  			      for (int k=0;k<nvar;k++) {
-			        if (i<=dom.nx2) Q[i][j][k][nbs]=0.25*sum_irjr(Q,n1,k,i1,i2,j1,j2);
-			        if (i>=dom.nxmin) Q[nx2i][j][k][nbs]=0.25*sum_irjr(Q,n2,k,i1,i2,j1,j2);
+			        Q[i][j][k][nbs]=0.25*sum_irjr(Q,n1,k,i1,i2,j1,j2);
+			        Q[nx2i][j][k][nbs]=0.25*sum_irjr(Q,n2,k,i1,i2,j1,j2);
 			      }
 			    }
 			  }
-			  for (int k=0;k<nvar;k++) {
-			    for (int j=dom.ny+nghosts/2-1;j<dom.ny;j++) {
-			      for (int i=0;i<nghosts/2;i++) {
-			        Q[i][j][k][nbs]=Q[nghosts/2][j][k][nbs];
-			        Q[dom.nx-1-i][j][k][nbs]=Q[dom.nx-1-nghosts/2][j][k][nbs];
-			      }
-			    }
+			  n3=dom.lp[n1][4]; // left corner
+			  if (n3==-1) { // Means coarser corner
+			    n3=dom.lp[dom.lp[n1][1]][4];
+			    for (int k=0;k<nvar;k++) {
+                              for (int i=0;i<nghosts;i++) {
+                                for (int j=dom.nymaxb;j<dom.ny;j++) {
+				  ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nyminb+(j-dom.nymax+1)/2;
+				  Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+				}}}
+			  } else {
+			    if (!dom.leafs[n3]) { // Means more refined corner
+			      n3=dom.lp[n3][2]+1;
+			      for (int k=0;k<nvar;k++) {
+                                for (int i=0;i<nghosts;i++) {
+                                  for (int j=dom.nymaxb;j<dom.ny;j++) {
+				    ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nyminb+2*(j-dom.nymax)-1;
+                                    Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
+                                  }}}
+			    } else { // same res corner
+		              for (int k=0;k<nvar;k++) {
+                                for (int i=0;i<nghosts;i++) {
+                                  for (int j=dom.nymaxb;j<dom.ny;j++) {
+				    ii=dom.nxmax-nghosts+(i+1); jj=dom.nyminb+(j-dom.nymax);
+                                    Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+			          }}}
+			    }			    		    
 			  }
+			  n4=dom.lp[n2][5]; // right corner
+			  if (n4==-1) { // Means coarser corner
+                            n4=dom.lp[dom.lp[n2][1]][5];
+                            for (int k=0;k<nvar;k++) {
+                              for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                for (int j=dom.nymaxb;j<dom.ny;j++) {
+                                  ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nyminb+(j-dom.nymax+1)/2;
+                                  Q[i][j][k][nbs]=Q[ii][jj][k][n4];
+                                }}}
+                          } else {
+                            if (!dom.leafs[n4]) { // Means more refined corner
+                              n4=dom.lp[n4][2];
+                              for (int k=0;k<nvar;k++) {
+                                for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                  for (int j=dom.nymaxb;j<dom.ny;j++) {
+                                    ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nyminb+2*(j-dom.nymax)-1;
+                                    Q[i][j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
+                                  }}}
+                            } else { // same res corner
+                              for (int k=0;k<nvar;k++) {
+                                for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                  for (int j=dom.nymaxb;j<dom.ny;j++) {
+                                    ii=dom.nxminb+(i-dom.nxmax); jj=dom.nyminb+(j-dom.nymax);
+                                    Q[i][j][k][nbs]=Q[ii][jj][k][n4];
+                                  }}}
+                            }
+                          }
 			  // Neighbor's bottom
 			  // to finer level (0th order interpolation)
 			  for (int j=1;j<=nghosts;j++) {
@@ -281,8 +422,13 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			  }
 			  break;
 		  default:
-			  cout<<"Boundary: Error as invalid direction obtained! direc="<<dom.innerbounds[nb][2]<<endl;
-			  throw exception();
+			  if (dom.innerbounds[nb][2]<-4 and dom.innerbounds[nb][2]>-1) {
+			  	cout<<"Boundary: Error as invalid direction obtained! direc="<<dom.innerbounds[nb][2]<<endl;
+			  	throw exception();
+			  }
 	  }
 	}
+
+	// External boundaries
+	extboundary(dom,Q,nvar);
 }

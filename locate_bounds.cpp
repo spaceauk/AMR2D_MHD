@@ -8,7 +8,7 @@
 // - extbounds =   (nextertot,5)  0: source ID, 1: sorce rank,
 //   			          2: dest. ID,  3: dest. rank,
 //  			          4: direc.
-// Note that if dest. ID = -1 here, it means that the boundary
+// Note that if dest. ID = -n here, it means that the boundary
 // lies on the grid boundary and thus no destination block.
 //
 // Note that for the direc here will not start from 0!

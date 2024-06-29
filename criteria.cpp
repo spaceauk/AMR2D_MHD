@@ -7,7 +7,7 @@ void criteria(meshblock &dom, int nb) {
 	real grad=0;
 	real rThresh=0.05; 
 	real cThresh=1.0;
-	
+
 	for (int i=dom.nxmin;i<=dom.nxmax;i++) {
 	  for (int j=dom.nymin;j<=dom.nymax;j++) {
 	    real dm=MAX(eps,abs(dom.W[i][j][4][nb]));
@@ -31,7 +31,8 @@ void criteria(meshblock &dom, int nb) {
 	    if (grad>=rThresh) {
 	      // Only mark if nl<maxlevs-1 (-1 is due to cpp start from 0)
 	      if (dom.lp[nb][0]<maxlevs-1) {
-		cout<<"Refining at nb="<<nb<<" as grad="<<grad<<" at i="<<i<<", j="<<j<<"; # of blocks="<<dom.lastActive<<endl;
+		printf("Refining at nb=%d as grad=%f at i=%d, j=%d; # of blocks=%d \n",
+			nb,grad,i,j,dom.lastActive);
 		dom.iref[nb]=true;
 		dom.icoarse[nb]=false;
 	      }

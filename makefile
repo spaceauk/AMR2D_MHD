@@ -21,7 +21,7 @@ endif
 OBJ = main.o meshblock.o IC2Dtype.o MUSCL2D.o slopelimiter.o celledges.o riemannS.o savedata.o WENO2D_primvar.o parameters.o diffusivity.o timeIntegral.o
 EXEC = main.x
 # Multiple static grid stuffs
-OBJ += basegrid.o locate_bounds.o boundary.o 
+OBJ += basegrid.o locate_bounds.o boundary.o extboundary.o 
 # Making grids adaptive
 OBJ += markref.o criteria.o critneighup.o critneighdown.o refine.o coarsen.o updatelpup.o updatelpdown.o admesh.o
 # Others

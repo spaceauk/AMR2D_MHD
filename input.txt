@@ -1,5 +1,5 @@
-32 32 8
+8 8 8
 1.0 1.0 
-0.5
-BWx MC HLLD
+0.4
+BWy MC HLLD
 

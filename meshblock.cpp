@@ -134,8 +134,10 @@ void meshblock::U2W(string loc,int nb) {
 			}
 			// Check for negative pressure
 			if (W[i][j][4][nb]<=0 and i>nxminb and i<nxmaxb and j>nyminb and j<nymaxb) {
-				printf("Error at U2W as zero/negative pressure! P=%f, at i=%d, j=%d & nb=%d \n",
-					W[i][j][4][nb],i,j,nb);
+				real x=((nxmin+icoord[nb][0]-nghosts)+0.5)*dx[lp[nb][0]] - dx[0];
+                                real y=((nymin+icoord[nb][1]-nghosts)+0.5)*dy[lp[nb][0]] - dy[0];
+				printf("\n Error at U2W as zero/negative pressure! P=%f, at i=%d, j=%d & nb=%d where x=%f & y=%f \n"
+					,W[i][j][4][nb],i,j,nb,x,y);
 				throw exception();
 			}
 		}
@@ -160,8 +162,10 @@ void meshblock::Us2W(string loc,int nb) {
                         }
                         // Check for negative pressure
                         if (W[i][j][4][nb]<=0 and i>nxminb and i<nxmaxb and j>nyminb and j<nymaxb) {
-				printf("Error at Us2W as zero/negative pressure! P=%f, at i=%d, j=%d & nb=%d \n",
-                                        W[i][j][4][nb],i,j,nb);
+				real x=((nxmin+icoord[nb][0]-nghosts)+0.5)*dx[lp[nb][0]] - dx[0];
+                                real y=((nymin+icoord[nb][1]-nghosts)+0.5)*dy[lp[nb][0]] - dy[0];
+				printf("\n Error at Us2W as zero/negative pressure! P=%f, at i=%d, j=%d & nb=%d where x=%f & x=%f \n",
+                                        W[i][j][4][nb],i,j,nb,x,y);
                                 throw exception();
                         }
 			if (isnan(W[i][j][1][nb]) or isnan(W[i][j][2][nb]) or isnan(W[i][j][3][nb])) {
