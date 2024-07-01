@@ -5,7 +5,7 @@
 // - bounds = 0: Left, 1: Right, 2: Bottom, 3: Top
 // - innerbounds = (ninternal,3)  0: source ID, 1: dest. ID, 
 //                                2: direc.
-// - extbounds =   (nextertot,5)  0: source ID, 1: sorce rank,
+// - extbounds =   (nextertot,5)  0: source ID, 1: source rank,
 //   			          2: dest. ID,  3: dest. rank,
 //  			          4: direc.
 // Note that if dest. ID = -n here, it means that the boundary

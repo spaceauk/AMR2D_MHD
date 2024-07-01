@@ -5,13 +5,13 @@ real sum_irjr(real**** U, int nb, int k, int i1, int i2, int j1, int j2);
 void extboundary(meshblock &dom,real**** Q,int nvar);
 
 void boundary(meshblock &dom,real**** Q,int nvar) {
+	int nbs;
+	int n1,n2,n3,n4; 
+	int ii,jj;
 
 	// Internal boundaries
 	for (int nb=0; nb<dom.nbounds; nb++){
-	  int nbs=dom.innerbounds[nb][0];	 
-	  int n1,n2;
-	  int ii, jj;
-	  int n3, n4;
+	  nbs=dom.innerbounds[nb][0];	 
 	  switch(dom.innerbounds[nb][2]) {
 		//----------------------------------------------------LEFT-----------------------------------------------------
 		  case 1: // Left @ same resolution
@@ -51,58 +51,62 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			    }
 			  }
 			  n3=dom.lp[n1][6]; // Bottom corner
-			  if (n3==-1) { // Means coarser corner			    
-			    n3=dom.lp[dom.lp[n1][1]][6];
-			    for (int k=0;k<nvar;k++) {
-                              for (int i=0;i<nghosts;i++) {
-                                for (int j=0;j<nghosts;j++) {
-				  ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-				  Q[i][j][k][nbs]=Q[ii][jj][k][n3];
-				}}}
-			  } else {
-			    if (!dom.leafs[n3]) { // Means more refined corner
-			      n3=dom.lp[n3][2]+3;
-			      for (int k=0;k<nvar;k++) {
-                                for (int i=0;i<nghosts;i++) {
-                                  for (int j=0;j<nghosts;j++) {
-                                    ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymax-nghosts*2+2*j+1;
-                                    Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
-                                  }}}
-			    } else { // same res corner
-		              for (int k=0;k<nvar;k++) {
-                                for (int i=0;i<nghosts;i++) {
-                                  for (int j=0;j<nghosts;j++) {
-				    ii=dom.nxmax-nghosts+(i+1); jj=dom.nymax-nghosts+(j+1);
-                                    Q[i][j][k][nbs]=Q[ii][jj][k][n3];
-			          }}}
-			    }
-			  }
-			  n4=dom.lp[n2][7]; // Top corner
-			  if (n4==-1) { // Means coarser corner
-                            n4=dom.lp[dom.lp[n2][1]][7];
-                            for (int k=0;k<nvar;k++) {
-                              for (int i=0;i<nghosts;i++) {
-                                for (int j=0;j<nghosts;j++) {
-                                  ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymin+nghosts/2-(j+2)/2;
-                                  Q[i][dom.ny-1-j][k][nbs]=Q[ii][jj][k][n4];
-                                }}}
-                          } else {
-                            if (!dom.leafs[n4]) { // Means more refined corner
-                              n4=dom.lp[n4][2]+1;
+			  if (n3!=-1) { // Ensure doesn't lie on grid boundary			    
+			   if (dom.leafs[n3]) { // same res corner
                               for (int k=0;k<nvar;k++) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=0;j<nghosts;j++) {
-                                    ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymin+nghosts*2-2*(j+1);
-                                    Q[i][dom.ny-1-j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
+                                    ii=dom.nxmax-nghosts+(i+1); jj=dom.nymax-nghosts+(j+1);
+                                    Q[i][j][k][nbs]=Q[ii][jj][k][n3];
                                   }}}
-                            } else { // same res corner
+			   } else {
+			      n3=dom.lp[n3][2]+3;
+			      if (dom.leafs[n3]) { // Means more refined corner
+			        for (int k=0;k<nvar;k++) {
+                                  for (int i=0;i<nghosts;i++) {
+                                    for (int j=0;j<nghosts;j++) {
+                                      ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymax-nghosts*2+2*j+1;
+                                      Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
+                                    }}}
+			      } else { // coarser corner
+			        n3=dom.lp[dom.lp[n1][1]][6];
+                                for (int k=0;k<nvar;k++) {
+                                  for (int i=0;i<nghosts;i++) {
+                                    for (int j=0;j<nghosts;j++) {
+                                      ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
+                                      Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+                                    }}}
+			      }
+			    }
+			  }
+			  n4=dom.lp[n2][7]; // Top corner
+			  if (n4!=-1) { // Ensure does not lie at grid boundary
+                            if (dom.leafs[n4]) { // same res corner
                               for (int k=0;k<nvar;k++) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=0;j<nghosts;j++) {
                                     ii=dom.nxmax-nghosts+(i+1); jj=dom.nymin+nghosts-(j+1);
                                     Q[i][dom.ny-1-j][k][nbs]=Q[ii][jj][k][n4];
                                   }}}
-                            }
+                            } else  {
+                              n4=dom.lp[n4][2]+1;
+			      if (dom.leafs[n4]) { // Means more refined corner
+                                for (int k=0;k<nvar;k++) {
+                                  for (int i=0;i<nghosts;i++) {
+                                    for (int j=0;j<nghosts;j++) {
+                                      ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymin+nghosts*2-2*(j+1);
+                                      Q[i][dom.ny-1-j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
+                                    }}}
+                              } else  { // coarser corner
+			        n4=dom.lp[dom.lp[n2][1]][7];
+                                for (int k=0;k<nvar;k++) {
+                                  for (int i=0;i<nghosts;i++) {
+                                    for (int j=0;j<nghosts;j++) {
+                                      ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymin+nghosts/2-(j+2)/2;
+                                      Q[i][dom.ny-1-j][k][nbs]=Q[ii][jj][k][n4];
+                                    }}}
+			      }
+			    }
                           }			  
 			  // Neighbor's right
 			  // to finer level (0th order interpolation)
@@ -153,58 +157,62 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			    }
 			  }
 			  n3=dom.lp[n1][6]; // Bottom corner
-			  if (n3==-1) { // Means coarser corner
-			    n3=dom.lp[dom.lp[n1][1]][6];
-			    for (int k=0;k<nvar;k++) {
-                              for (int i=dom.nxmaxb;i<dom.nx;i++) {
-                                for (int j=0;j<nghosts;j++) {
-				  ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-				  Q[i][j][k][nbs]=Q[ii][jj][k][n3];
-				}}}
-			  } else {
-			    if (!dom.leafs[n3]) { // Means more refined corner
-			      n3=dom.lp[n3][2]+2;
-			      for (int k=0;k<nvar;k++) {
-                                for (int i=dom.nxmaxb;i<dom.nx;i++) {
-                                  for (int j=0;j<nghosts;j++) {
-                                    ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nymax-nghosts*2+2*j+1;
-                                    Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
-                                  }}}
-			    } else { // same res corner
-		              for (int k=0;k<nvar;k++) {
-                                for (int i=dom.nxmaxb;i<dom.nx;i++) {
-                                  for (int j=0;j<nghosts;j++) {
-				    ii=dom.nxminb+(i-dom.nxmax); jj=dom.nymax-nghosts+(j+1);
-                                    Q[i][j][k][nbs]=Q[ii][jj][k][n3];
-			          }}}
-			    }			    		    
-			  }			  
-			  n4=dom.lp[n2][7]; // Top corner
-			  if (n4==-1) { // Means coarser corner
-                            n4=dom.lp[dom.lp[n2][1]][7];
-                            for (int k=0;k<nvar;k++) {
-                              for (int i=dom.nxmaxb;i<dom.nx;i++) {
-                                for (int j=0;j<nghosts;j++) {
-                                  ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nymin+nghosts/2-(j+2)/2;
-                                  Q[i][dom.ny-1-j][k][nbs]=Q[ii][jj][k][n4];
-                                }}}
-                          } else {
-                            if (!dom.leafs[n4]) { // Means more refined corner
-                              n4=dom.lp[n4][2];
+			  if (n3!=-1) { // Ensure not at grid boundary
+			    if (dom.leafs[n3]) { // same res corner
                               for (int k=0;k<nvar;k++) {
                                 for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                   for (int j=0;j<nghosts;j++) {
-                                    ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nymin+nghosts*2-2*(j+1);
-                                    Q[i][dom.ny-1-j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
+                                    ii=dom.nxminb+(i-dom.nxmax); jj=dom.nymax-nghosts+(j+1);
+                                    Q[i][j][k][nbs]=Q[ii][jj][k][n3];
                                   }}}
-                            } else { // same res corner
+                            } else {
+			      n3=dom.lp[n3][2]+2;
+			      if (dom.leafs[n3]) { // Means more refined corner
+			        for (int k=0;k<nvar;k++) {
+                                  for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                    for (int j=0;j<nghosts;j++) {
+                                      ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nymax-nghosts*2+2*j+1;
+                                      Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
+                                    }}}
+			      } else { // coarser corner
+			        n3=dom.lp[dom.lp[n1][1]][6];
+                                for (int k=0;k<nvar;k++) {
+                                  for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                    for (int j=0;j<nghosts;j++) {
+                                      ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
+                                      Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+                                    }}}
+			      }	
+			    }			    
+			  }			  
+			  n4=dom.lp[n2][7]; // Top corner
+			  if (n4!=-1) { // ensure not at grid boundary
+                            if (dom.leafs[n4]) { // same res corner
                               for (int k=0;k<nvar;k++) {
                                 for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                   for (int j=0;j<nghosts;j++) {
                                     ii=dom.nxminb+(i-dom.nxmax); jj=dom.nymin+nghosts-(j+1);
                                     Q[i][dom.ny-1-j][k][nbs]=Q[ii][jj][k][n4];
                                   }}}
-                            }
+                            } else {
+                              n4=dom.lp[n4][2];
+			      if (dom.leafs[n4]) { // Means more refined corner
+                                for (int k=0;k<nvar;k++) {
+                                  for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                    for (int j=0;j<nghosts;j++) {
+                                      ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nymin+nghosts*2-2*(j+1);
+                                      Q[i][dom.ny-1-j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
+                                    }}}
+                              } else { // coarser corner
+			        n4=dom.lp[dom.lp[n2][1]][7];
+                                for (int k=0;k<nvar;k++) {
+                                  for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                    for (int j=0;j<nghosts;j++) {
+                                      ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nymin+nghosts/2-(j+2)/2;
+                                      Q[i][dom.ny-1-j][k][nbs]=Q[ii][jj][k][n4];
+                                    }}}
+			      }
+			    }
                           }
 			  // Neighbor's left
 			  // to finer level (0th order interpolation)
@@ -255,58 +263,62 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			    }
 			  }
 			  n3=dom.lp[n1][4]; // left corner
-			  if (n3==-1) { // Means coarser corner or grid boundary (will be accounted for in extboundary)
-			    n3=dom.lp[dom.lp[n1][1]][4];
-		 	    for (int k=0;k<nvar;k++) {
-                              for (int i=0;i<nghosts;i++) {
-                                for (int j=0;j<nghosts;j++) {
-				  ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-				  Q[i][j][k][nbs]=Q[ii][jj][k][n3];
-				}}}
-			  } else {
-			    if (!dom.leafs[n3]) { // Means more refined corner
-			      n3=dom.lp[n3][2]+3;
-			      for (int k=0;k<nvar;k++) {
+			  if (n3!=-1) { // ensure does not lie on grid boundary
+			    if (dom.leafs[n3]) { // same res corner
+                              for (int k=0;k<nvar;k++) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=0;j<nghosts;j++) {
-                                    ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymax-nghosts*2+2*j+1;
-                                    Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
-                                  }}}
-			    } else { // same res corner
-		              for (int k=0;k<nvar;k++) {
-                                for (int i=0;i<nghosts;i++) {
-                                  for (int j=0;j<nghosts;j++) {
-				    ii=dom.nxmax-nghosts+(i+1); jj=dom.nymax-nghosts+(j+1);
+                                    ii=dom.nxmax-nghosts+(i+1); jj=dom.nymax-nghosts+(j+1);
                                     Q[i][j][k][nbs]=Q[ii][jj][k][n3];
-			          }}}
+                                  }}}
+                            } else {
+			      n3=dom.lp[n3][2]+3;
+			      if (dom.leafs[n3]) { // Means more refined corner
+			        for (int k=0;k<nvar;k++) {
+                                  for (int i=0;i<nghosts;i++) {
+                                    for (int j=0;j<nghosts;j++) {
+                                      ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymax-nghosts*2+2*j+1;
+                                      Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
+                                    }}}
+			      } else { // coarser corner
+			        n3=dom.lp[dom.lp[n1][1]][4];
+                                for (int k=0;k<nvar;k++) {
+                                  for (int i=0;i<nghosts;i++) {
+                                    for (int j=0;j<nghosts;j++) {
+                                      ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
+                                      Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+                                    }}}
+			      }
 			    }
 			  }
 			  n4=dom.lp[n2][5]; // right corner
-			  if (n4==-1) { // Means coarser corner
-			    n4=dom.lp[dom.lp[n2][1]][5];
-                            for (int k=0;k<nvar;k++) {
-                              for (int i=0;i<nghosts;i++) {
-                                for (int j=0;j<nghosts;j++) {
-				  ii=dom.nxmin+nghosts/2-(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-                                  Q[dom.nx-1-i][j][k][nbs]=Q[ii][jj][k][n4];
-                                }}}
-                          } else {
-                            if (!dom.leafs[n4]) { // Means more refined corner
-                              n4=dom.lp[n4][2]+2;
+			  if (n4!=-1) { // ensure not at grid boundary
+                            if (dom.leafs[n4]) { // same res corner
                               for (int k=0;k<nvar;k++) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=0;j<nghosts;j++) {
-				    ii=dom.nxmin+nghosts*2-2*(i+1); jj=dom.nymax-nghosts*2+2*j+1;
-                                    Q[dom.nx-1-i][j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
-                                  }}}
-                            } else { // same res corner
-                              for (int k=0;k<nvar;k++) {
-                                for (int i=0;i<nghosts;i++) {
-                                  for (int j=0;j<nghosts;j++) {
-				    ii=dom.nxmin+nghosts-(i+1); jj=dom.nymax-nghosts+(j+1);
+                                    ii=dom.nxmin+nghosts-(i+1); jj=dom.nymax-nghosts+(j+1);
                                     Q[dom.nx-1-i][j][k][nbs]=Q[ii][jj][k][n4];
                                   }}}
-                            }
+                            } else {
+                              n4=dom.lp[n4][2]+2;
+			      if (dom.leafs[n4]) { // Means more refined corner
+                                for (int k=0;k<nvar;k++) {
+                                  for (int i=0;i<nghosts;i++) {
+                                    for (int j=0;j<nghosts;j++) {
+				      ii=dom.nxmin+nghosts*2-2*(i+1); jj=dom.nymax-nghosts*2+2*j+1;
+                                      Q[dom.nx-1-i][j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
+                                    }}}
+                              } else { // coarser corner
+			        n4=dom.lp[dom.lp[n2][1]][5];
+                                for (int k=0;k<nvar;k++) {
+                                  for (int i=0;i<nghosts;i++) {
+                                    for (int j=0;j<nghosts;j++) {
+                                      ii=dom.nxmin+nghosts/2-(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
+                                      Q[dom.nx-1-i][j][k][nbs]=Q[ii][jj][k][n4];
+                                    }}} 
+			      }
+			    }
                           }
 			  // Neighbor's top
 			  // to finer level (0th order interpolation)
@@ -357,58 +369,62 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			    }
 			  }
 			  n3=dom.lp[n1][4]; // left corner
-			  if (n3==-1) { // Means coarser corner
-			    n3=dom.lp[dom.lp[n1][1]][4];
-			    for (int k=0;k<nvar;k++) {
-                              for (int i=0;i<nghosts;i++) {
-                                for (int j=dom.nymaxb;j<dom.ny;j++) {
-				  ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nyminb+(j-dom.nymax+1)/2;
-				  Q[i][j][k][nbs]=Q[ii][jj][k][n3];
-				}}}
-			  } else {
-			    if (!dom.leafs[n3]) { // Means more refined corner
+			  if (n3!=-1) { // ensure not at grid boundary
+			    if (dom.leafs[n3]) { // same res corner
+                              for (int k=0;k<nvar;k++) {
+                                for (int i=0;i<nghosts;i++) {
+                                  for (int j=dom.nymaxb;j<dom.ny;j++) {
+                                    ii=dom.nxmax-nghosts+(i+1); jj=dom.nyminb+(j-dom.nymax);
+                                    Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+                                  }}}
+                            } else {
 			      n3=dom.lp[n3][2]+1;
+			      if (dom.leafs[n3]) { // Means more refined corner
 			      for (int k=0;k<nvar;k++) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=dom.nymaxb;j<dom.ny;j++) {
 				    ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nyminb+2*(j-dom.nymax)-1;
                                     Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
                                   }}}
-			    } else { // same res corner
-		              for (int k=0;k<nvar;k++) {
+			    } else { // coarser corner
+			      n3=dom.lp[dom.lp[n1][1]][4];
+                              for (int k=0;k<nvar;k++) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=dom.nymaxb;j<dom.ny;j++) {
-				    ii=dom.nxmax-nghosts+(i+1); jj=dom.nyminb+(j-dom.nymax);
+                                    ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nyminb+(j-dom.nymax+1)/2;
                                     Q[i][j][k][nbs]=Q[ii][jj][k][n3];
-			          }}}
-			    }			    		    
+                                  }}}
+			      }
+			    }			      
 			  }
 			  n4=dom.lp[n2][5]; // right corner
-			  if (n4==-1) { // Means coarser corner
-                            n4=dom.lp[dom.lp[n2][1]][5];
-                            for (int k=0;k<nvar;k++) {
-                              for (int i=dom.nxmaxb;i<dom.nx;i++) {
-                                for (int j=dom.nymaxb;j<dom.ny;j++) {
-                                  ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nyminb+(j-dom.nymax+1)/2;
-                                  Q[i][j][k][nbs]=Q[ii][jj][k][n4];
-                                }}}
-                          } else {
-                            if (!dom.leafs[n4]) { // Means more refined corner
+			  if (n4!=-1) { // ensure not at grid boundary
+                            if (dom.leafs[n4]) { // same res corner
+                              for (int k=0;k<nvar;k++) {
+                                for (int i=0;i<nghosts;i++) {
+                                  for (int j=dom.nymaxb;j<dom.ny;j++) {
+                                    ii=dom.nxmin+nghosts-(i+1); jj=dom.nyminb+(j-dom.nymax);
+                                    Q[dom.nx-1-i][j][k][nbs]=Q[ii][jj][k][n4];
+                                  }}}
+			    } else {
                               n4=dom.lp[n4][2];
-                              for (int k=0;k<nvar;k++) {
-                                for (int i=dom.nxmaxb;i<dom.nx;i++) {
-                                  for (int j=dom.nymaxb;j<dom.ny;j++) {
-                                    ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nyminb+2*(j-dom.nymax)-1;
-                                    Q[i][j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
-                                  }}}
-                            } else { // same res corner
-                              for (int k=0;k<nvar;k++) {
-                                for (int i=dom.nxmaxb;i<dom.nx;i++) {
-                                  for (int j=dom.nymaxb;j<dom.ny;j++) {
-                                    ii=dom.nxminb+(i-dom.nxmax); jj=dom.nyminb+(j-dom.nymax);
-                                    Q[i][j][k][nbs]=Q[ii][jj][k][n4];
-                                  }}}
-                            }
+			      if (dom.leafs[n4]) { // Means more refined corner
+                                for (int k=0;k<nvar;k++) {
+                                  for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                    for (int j=dom.nymaxb;j<dom.ny;j++) {
+                                      ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nyminb+2*(j-dom.nymax)-1;
+                                      Q[i][j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
+                                    }}}
+                              } else { // coarser corner
+			        n4=dom.lp[dom.lp[n2][1]][5];
+                                for (int k=0;k<nvar;k++) {
+                                  for (int i=dom.nxmaxb;i<dom.nx;i++) {
+                                    for (int j=dom.nymaxb;j<dom.ny;j++) {
+                                      ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nyminb+(j-dom.nymax+1)/2;
+                                      Q[i][j][k][nbs]=Q[ii][jj][k][n4];
+                                    }}}
+			      }
+			    }
                           }
 			  // Neighbor's bottom
 			  // to finer level (0th order interpolation)
@@ -423,7 +439,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			  break;
 		  default:
 			  if (dom.innerbounds[nb][2]<-4 and dom.innerbounds[nb][2]>-1) {
-			  	cout<<"Boundary: Error as invalid direction obtained! direc="<<dom.innerbounds[nb][2]<<endl;
+			  	printf("Boundary: Error as invalid direction obtained! direc=%d \n",dom.innerbounds[nb][2]);
 			  	throw exception();
 			  }
 	  }

@@ -5,6 +5,7 @@
 void extboundary(meshblock &dom,real**** Q,int nvar) {
 
 	// Internal boundaries
+	#pragma omp parallel for default(none) shared(dom,Q,nvar)
 	for (int nb=0; nb<dom.nbounds; nb++){
 	  int nbs=dom.innerbounds[nb][0];	 
 	  int n1,n2;

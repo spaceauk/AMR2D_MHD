@@ -32,7 +32,7 @@ void meshblock::basegrid() {
 	lp[1][0]=0;    // Level of refinement
         lp[1][1]=0;    // Father
         lp[1][2]=0;    // Son (only 1st=ID1)
-        lp[1][3]=1;    // Sibling ID
+        lp[1][3]=0;    // Sibling ID
         lp[1][4]=0;    // Neighbor left
         lp[1][5]=-1;   // Neighbor right
         lp[1][6]=-1;   // Neighbor down
