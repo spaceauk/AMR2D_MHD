@@ -1,16 +1,3 @@
-// Refine to next level
-// Note how the dad block is shared with son blocks: E.g., nx-1=35 (w/ ghosts) , nxmax=33, nxmin=2
-//  i     (i+2)/2     i/2+nx2        -> This ensures that the internal cells of dad block are
-//  0        1          17      (g)     all matched to the internal cells of son block.
-//  1	     1          17      (b)
-//  2        2          18      (i)  
-//  3        2          18
-//           :
-//  32       17         33
-//  33       17         33      (i)
-//  34       18         34      (b)
-//  35       18         34      (g)
-
 #include "defs.hpp"
 real slopelimiter(string limiter,real r,real eta);
 
@@ -67,6 +54,8 @@ void refineBi_CT(meshblock &dom, real**** Bi, int nvar, int nb,
 	int ii,jj;
 	int signx,signy;
 	// Update Bi after refinement
+	#pragma omp parallel for collapse(3) default(none) \
+           shared(dom,Bi,nvar,nb,son1,son2,son3,son4) private(ii,jj,signx,signy)
 	for (int i=0;i<dom.nx;i++) {
 	  for (int j=0;j<dom.ny;j++) {
 	    for (int k=0;k<nvar;k++) {
