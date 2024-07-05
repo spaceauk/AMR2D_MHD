@@ -67,7 +67,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
                                       EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                     }}}
 			      } else { // coarser corner
-			        n3=dom.lp[dom.lp[n1][1]][6];
+			        n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][6];
                                 for (int k=0;k<nvar;k++) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
@@ -96,7 +96,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
                                       EMFz[i][dom.ny-1-j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
                               } else  { // coarser corner
-			        n4=dom.lp[dom.lp[n2][1]][7];
+			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][7];
                                 for (int k=0;k<nvar;k++) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
@@ -171,7 +171,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
                                       EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                     }}}
 			      } else { // coarser corner
-			        n3=dom.lp[dom.lp[n1][1]][6];
+			        n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][6];
                                 for (int k=0;k<nvar;k++) {
                                   for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                     for (int j=0;j<nghosts;j++) {
@@ -200,7 +200,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
                                       EMFz[i][dom.ny-1-j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
                               } else { // coarser corner
-			        n4=dom.lp[dom.lp[n2][1]][7];
+			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][7];
                                 for (int k=0;k<nvar;k++) {
                                   for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                     for (int j=0;j<nghosts;j++) {
@@ -275,7 +275,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
                                       EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                     }}}
 			      } else { // coarser corner
-			        n3=dom.lp[dom.lp[n1][1]][4];
+			        n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][4];
                                 for (int k=0;k<nvar;k++) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
@@ -304,7 +304,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
                                       EMFz[dom.nx-1-i][j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
                               } else { // coarser corner
-			        n4=dom.lp[dom.lp[n2][1]][5];
+			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][5];
                                 for (int k=0;k<nvar;k++) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
@@ -379,7 +379,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
                                     EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                   }}}
 			    } else { // coarser corner
-			      n3=dom.lp[dom.lp[n1][1]][4];
+			      n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][4];
                               for (int k=0;k<nvar;k++) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=dom.nymaxb;j<dom.ny;j++) {
@@ -408,7 +408,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
                                       EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
                               } else { // coarser corner
-			        n4=dom.lp[dom.lp[n2][1]][5];
+			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][5];
                                 for (int k=0;k<nvar;k++) {
                                   for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                     for (int j=dom.nymaxb;j<dom.ny;j++) {

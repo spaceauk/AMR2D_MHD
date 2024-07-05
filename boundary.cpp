@@ -69,7 +69,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                       Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
                                     }}}
 			      } else { // coarser corner
-			        n3=dom.lp[dom.lp[n1][1]][6];
+			        n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][6];
                                 for (int k=0;k<nvar;k++) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
@@ -98,7 +98,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                       Q[i][dom.ny-1-j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
                                     }}}
                               } else  { // coarser corner
-			        n4=dom.lp[dom.lp[n2][1]][7];
+			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][7];
                                 for (int k=0;k<nvar;k++) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
@@ -175,7 +175,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                       Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
                                     }}}
 			      } else { // coarser corner
-			        n3=dom.lp[dom.lp[n1][1]][6];
+			        n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][6];
                                 for (int k=0;k<nvar;k++) {
                                   for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                     for (int j=0;j<nghosts;j++) {
@@ -204,7 +204,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                       Q[i][dom.ny-1-j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
                                     }}}
                               } else { // coarser corner
-			        n4=dom.lp[dom.lp[n2][1]][7];
+			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][7];
                                 for (int k=0;k<nvar;k++) {
                                   for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                     for (int j=0;j<nghosts;j++) {
@@ -281,7 +281,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                       Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
                                     }}}
 			      } else { // coarser corner
-			        n3=dom.lp[dom.lp[n1][1]][4];
+			        n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][4];
                                 for (int k=0;k<nvar;k++) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
@@ -310,7 +310,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                       Q[dom.nx-1-i][j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
                                     }}}
                               } else { // coarser corner
-			        n4=dom.lp[dom.lp[n2][1]][5];
+			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][5];
                                 for (int k=0;k<nvar;k++) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
@@ -387,7 +387,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                     Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
                                   }}}
 			    } else { // coarser corner
-			      n3=dom.lp[dom.lp[n1][1]][4];
+			      n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][4];
                               for (int k=0;k<nvar;k++) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=dom.nymaxb;j<dom.ny;j++) {
@@ -416,7 +416,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                       Q[i][j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
                                     }}}
                               } else { // coarser corner
-			        n4=dom.lp[dom.lp[n2][1]][5];
+			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][5];
                                 for (int k=0;k<nvar;k++) {
                                   for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                     for (int j=dom.nymaxb;j<dom.ny;j++) {
