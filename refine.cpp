@@ -27,7 +27,7 @@ real refineSL(real**** Q,int i,int j,int k,int nb,int signx,int signy) {
 	//       0     1      --> sign allocated here to tell which side
 	r=(Q[i][j][k][nb]-Q[i-1][j][k][nb])/(Q[i+1][j][k][nb]-Q[i][j][k][nb] +eps);
 	phi=0.25*slopelimiter(rlimiter,r,0)*(Q[i+1][j][k][nb]-Q[i][j][k][nb]);
-	result = signx==0 ? result-phi : result+phi;
+        result = signx==0 ? result-phi : result+phi;
 
 	r=(Q[i][j][k][nb]-Q[i][j-1][k][nb])/(Q[i][j+1][k][nb]-Q[i][j][k][nb] +eps);
         phi=0.25*slopelimiter(rlimiter,r,0)*(Q[i][j+1][k][nb]-Q[i][j][k][nb]);

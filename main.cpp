@@ -20,6 +20,7 @@ void boundary(meshblock &dom,real**** Q,int nvar);
 void admesh(meshblock &dom);
 // Constrained transport for solenoidal magnetic field
 void CT2D(meshblock &dom,real**** q,real**** Bi,int step,real**** Binew);
+void boundaryfc(meshblock &dom,real**** Bi,int nvar);
 // Apply diffusivity to all variables for enhanced stability
 void diffusivity(real**** U,real eta,int nb,int nxmin,int nxmax,int nymin,int nymax,int nvar);
 // Check timing
@@ -124,10 +125,10 @@ int main() {
 	dom.omp_time["main"]=omp_get_wtime();
 	reset_time(dom.omp_time);
 #endif	
-	while (t<=dom.tEnd and count<=2000) {
+	while (t<=dom.tEnd) {
 		locate_bounds(dom);
 	        boundary(dom,dom.U,dom.nvar);	
-		if (CT_mtd) boundary(dom,dom.Bi,2);
+		if (CT_mtd) boundaryfc(dom,dom.Bi,2);
 
 		if (t==0) {
 		cout<<"0) # of blocks="<<dom.lastActive<<" where maxblocks="<<maxblocks<<", nbleafs="<<dom.nbleafs<<endl;
@@ -158,9 +159,9 @@ int main() {
 		}  
 		// Apply constrained transport
 		if (CT_mtd) {
-			boundary(dom,dom.Bi,2);
-			boundary(dom,dom.ff,dom.nvar);
-			boundary(dom,dom.gg,dom.nvar);
+			boundaryfc(dom,dom.Bi,2);
+			boundaryfc(dom,dom.ff,dom.nvar);
+			boundaryfc(dom,dom.gg,dom.nvar);
                         CT2D(dom,dom.Us,dom.Bi,1,dom.Bis);
 		}
 		// Boundary conditions on Us
@@ -193,8 +194,8 @@ int main() {
 		  }
 		} 
 		if (CT_mtd) {
-			boundary(dom,dom.ff,dom.nvar);
-                        boundary(dom,dom.gg,dom.nvar);
+			boundaryfc(dom,dom.ff,dom.nvar);
+                        boundaryfc(dom,dom.gg,dom.nvar);
                         CT2D(dom,dom.U,dom.Bis,2,dom.Bi);
 		}
 		// Boundary conditions on U

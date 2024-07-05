@@ -27,7 +27,7 @@ OBJ += markref.o criteria.o critneighup.o critneighdown.o refine.o coarsen.o upd
 # Others
 OBJ += misc.o
 # Constrained transport for zero solenoidal magnetic field
-OBJ += CT2D.o refinefc.o 
+OBJ += CT2D.o refineBi_CT.o coarsenBi_CT.o boundaryfc.o boundaryec.o  
 
 OBJS = $(addprefix $(OBJDIR), $(OBJ))
 

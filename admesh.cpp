@@ -11,7 +11,8 @@ void refine(meshblock &dom,real**** Q,int nvar,int dad,int son1,int son2,int son
 void updatelpup(meshblock &dom,int dad,int son1,int son2,int son3,int son4);
 void coarsen(meshblock &dom,real**** Q,int nvar,int dad,int son1,int son2,int son3,int son4);
 void updatelpdown(meshblock &dom,int dad,int son1,int son2,int son3,int son4);
-void refinefc(meshblock &dom, real**** Bi, int nvar, int nb,int son1, int son2, int son3, int son4);
+void refineBi_CT(meshblock &dom, real**** Bi, int nvar, int nb, int son1, int son2, int son3, int son4);
+void coarsenBi_CT(meshblock &dom,real**** Q,int nvar,int dad,int son1,int son2,int son3,int son4);
 
 void admesh(meshblock &dom) {
 	int brother[3];
@@ -52,7 +53,7 @@ void admesh(meshblock &dom) {
 	      if (print) {cout<<"Refining to give son block: "; print=false;}
 	      refine(dom,dom.U,dom.nvar,nb,son1,son2,son3,son4);
 	      updatelpup(dom,nb,son1,son2,son3,son4);
-	      if (CT_mtd) refinefc(dom,dom.Bi,2,nb,son1,son2,son3,son4);
+	      if (CT_mtd) refineBi_CT(dom,dom.Bi,2,nb,son1,son2,son3,son4);
 	    }
 	  }
 	} 
@@ -87,7 +88,7 @@ void admesh(meshblock &dom) {
 		if (print) {cout<<"Coarsening to give dad block: "; print=false;}
 	        coarsen(dom,dom.U,dom.nvar,dad,son1,son2,son3,son4);
 		updatelpdown(dom,dad,son1,son2,son3,son4);
-		if (CT_mtd) coarsen(dom,dom.Bi,2,dad,son1,son2,son3,son4);
+		if (CT_mtd) coarsenBi_CT(dom,dom.Bi,2,dad,son1,son2,son3,son4);
 	      }
 	    }
 	  }

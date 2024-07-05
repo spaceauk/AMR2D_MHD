@@ -1,10 +1,10 @@
 #include<exception>
 #include "defs.hpp"
 
-real sum_irjr(real**** U, int nb, int k, int i1, int i2, int j1, int j2);
-void extboundary(meshblock &dom,real**** Q,int nvar);
+void extboundary(meshblock &dom,real**** EMFz,int nvar);
 
-void boundary(meshblock &dom,real**** Q,int nvar) {
+// ec for Edge centered
+void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
 	int nbs;
 	int n1,n2,n3,n4; 
 	int ii,jj;
@@ -21,13 +21,13 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			      // Own's left
 			      ii=dom.nxmax-(nghosts-1);
 			      for (int i=0;i<nghosts;i++) {
-			        Q[i][j][k][nbs]=Q[ii][j][k][n1];
+			        EMFz[i][j][k][nbs]=EMFz[ii][j][k][n1];
 				ii++;
 			      }
 			      // Neighbor's right
 			      ii=dom.nxmin;
 			      for (int i=dom.nxp1;i<dom.nx;i++) {
-			        Q[i][j][k][n1]=Q[ii][j][k][nbs];
+			        EMFz[i][j][k][n1]=EMFz[ii][j][k][nbs];
 			        ii++;
 			      }
 			    }
@@ -40,24 +40,22 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			  for (int j=dom.nymin;j<=dom.ny2;j++) {
 			    int ny2j=dom.ny2+j-1-(nghosts-2);
 			    for (int i=0;i<nghosts;i++) {
-			      int i1=2*(i-nghosts/2)-nghosts/2+dom.nxmax;
-			      int i2=i1+1;
-			      int j1=2*j-dom.nymin; 
-			      int j2=j1+1;
+			      ii=2*(i-nghosts/2)-nghosts/2+dom.nxmax;
+			      jj=2*j-dom.nymin;
  			      for (int k=0;k<nvar;k++) {
-			        Q[i][j][k][nbs]=0.25*sum_irjr(Q,n1,k,i1,i2,j1,j2);
-			        Q[i][ny2j][k][nbs]=0.25*sum_irjr(Q,n2,k,i1,i2,j1,j2);
+			        EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n1];
+			        EMFz[i][ny2j][k][nbs]=EMFz[ii][jj][k][n2];
 			      }
 			    }
 			  }
-			  n3=dom.lp[dom.lp[n1][1]][6]; // Bottom corner (note has to use the coarser version of bottom blocks as the upper block is less refined.)
+			  n3=dom.lp[dom.lp[n1][1]][6]; // Bottom corner
 			  if (n3!=-1) { // Ensure doesn't lie on grid boundary			    
 			   if (dom.leafs[n3]) { // same res corner
                               for (int k=0;k<nvar;k++) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=0;j<nghosts;j++) {
                                     ii=dom.nxmax-nghosts+(i+1); jj=dom.nymax-nghosts+(j+1);
-                                    Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+                                    EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                   }}}
 			   } else {
 			      n3=dom.lp[n3][2]+3;
@@ -66,7 +64,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
                                       ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymax-nghosts*2+2*j+1;
-                                      Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
+                                      EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                     }}}
 			      } else { // coarser corner
 			        n3=dom.lp[dom.lp[n1][1]][6];
@@ -74,7 +72,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
                                       ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-                                      Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+                                      EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                     }}}
 			      }
 			    }
@@ -86,7 +84,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=0;j<nghosts;j++) {
                                     ii=dom.nxmax-nghosts+(i+1); jj=dom.nymin+nghosts-(j+1);
-                                    Q[i][dom.ny-1-j][k][nbs]=Q[ii][jj][k][n4];
+                                    EMFz[i][dom.ny-1-j][k][nbs]=EMFz[ii][jj][k][n4];
                                   }}}
                             } else  {
                               n4=dom.lp[n4][2]+1;
@@ -95,7 +93,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
                                       ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymin+nghosts*2-2*(j+1);
-                                      Q[i][dom.ny-1-j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
+                                      EMFz[i][dom.ny-1-j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
                               } else  { // coarser corner
 			        n4=dom.lp[dom.lp[n2][1]][7];
@@ -103,7 +101,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
                                       ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymin+nghosts/2-(j+2)/2;
-                                      Q[i][dom.ny-1-j][k][nbs]=Q[ii][jj][k][n4];
+                                      EMFz[i][dom.ny-1-j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
 			      }
 			    }
@@ -113,8 +111,8 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			  for (int i=1;i<=nghosts;i++) {
 			    for (int j=0;j<dom.ny;j++) {
 			      for (int k=0;k<nvar;k++) {
-			        Q[i+dom.nxmax][j][k][n1]=Q[(i+2*nghosts-1)/2][(j+nghosts)/2][k][nbs];
-			        Q[i+dom.nxmax][j][k][n2]=Q[(i+2*nghosts-1)/2][(j-nghosts+2)/2+dom.ny2][k][nbs];
+			        EMFz[i+dom.nxmax][j][k][n1]=EMFz[(i+2*nghosts-1)/2][(j+nghosts)/2][k][nbs];
+			        EMFz[i+dom.nxmax][j][k][n2]=EMFz[(i+2*nghosts-1)/2][(j-nghosts+2)/2+dom.ny2][k][nbs];
 		  	      }
 			    }
 			  }
@@ -127,13 +125,13 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			      // Own's right
 			      ii=dom.nxmin;
 			      for (int i=dom.nxp1;i<dom.nx;i++) {
-			        Q[i][j][k][nbs]=Q[ii][j][k][n1];
+			        EMFz[i][j][k][nbs]=EMFz[ii][j][k][n1];
 				ii++;
 			      }
 			      // Neighbor's left
 			      ii=dom.nxmax-(nghosts-1);
 			      for (int i=0;i<nghosts;i++) {
-			        Q[i][j][k][n1]=Q[ii][j][k][nbs];
+			        EMFz[i][j][k][n1]=EMFz[ii][j][k][nbs];
 				ii++;
 			      }
 			    }
@@ -145,14 +143,12 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			  // Own's right
 			  for (int i=dom.nxp1;i<dom.nx;i++) {
 			    for (int j=dom.nymin;j<=dom.ny2;j++) {
-			      int i1=2*(i-dom.nxmax+(nghosts/2-1));
-			      int i2=i1+1;
-		              int j1=2*j-dom.nymin;
-			      int j2=j1+1;
+			      ii=2*(i-dom.nxmax+(nghosts/2-1));
+		              jj=2*j-dom.nymin;
 			      int ny2j=dom.ny2+j-1-(nghosts-2);
  			      for (int k=0;k<nvar;k++) {
-			        Q[i][j][k][nbs]=0.25*sum_irjr(Q,n1,k,i1,i2,j1,j2);
-			        Q[i][ny2j][k][nbs]=0.25*sum_irjr(Q,n2,k,i1,i2,j1,j2);
+			        EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n1];
+			        EMFz[i][ny2j][k][nbs]=EMFz[ii][jj][k][n2];
 			      }
 			    }
 			  }
@@ -163,7 +159,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                 for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                   for (int j=0;j<nghosts;j++) {
                                     ii=dom.nxminb+(i-dom.nxmax); jj=dom.nymax-nghosts+(j+1);
-                                    Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+                                    EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                   }}}
                             } else {
 			      n3=dom.lp[n3][2]+2;
@@ -172,7 +168,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                   for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                     for (int j=0;j<nghosts;j++) {
                                       ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nymax-nghosts*2+2*j+1;
-                                      Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
+                                      EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                     }}}
 			      } else { // coarser corner
 			        n3=dom.lp[dom.lp[n1][1]][6];
@@ -180,7 +176,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                   for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                     for (int j=0;j<nghosts;j++) {
                                       ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-                                      Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+                                      EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                     }}}
 			      }	
 			    }			    
@@ -192,7 +188,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                 for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                   for (int j=0;j<nghosts;j++) {
                                     ii=dom.nxminb+(i-dom.nxmax); jj=dom.nymin+nghosts-(j+1);
-                                    Q[i][dom.ny-1-j][k][nbs]=Q[ii][jj][k][n4];
+                                    EMFz[i][dom.ny-1-j][k][nbs]=EMFz[ii][jj][k][n4];
                                   }}}
                             } else {
                               n4=dom.lp[n4][2];
@@ -201,7 +197,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                   for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                     for (int j=0;j<nghosts;j++) {
                                       ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nymin+nghosts*2-2*(j+1);
-                                      Q[i][dom.ny-1-j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
+                                      EMFz[i][dom.ny-1-j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
                               } else { // coarser corner
 			        n4=dom.lp[dom.lp[n2][1]][7];
@@ -209,7 +205,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                   for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                     for (int j=0;j<nghosts;j++) {
                                       ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nymin+nghosts/2-(j+2)/2;
-                                      Q[i][dom.ny-1-j][k][nbs]=Q[ii][jj][k][n4];
+                                      EMFz[i][dom.ny-1-j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
 			      }
 			    }
@@ -219,8 +215,8 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			  for (int i=1;i<=nghosts;i++) {
 			    for (int j=0;j<dom.ny;j++) {
 			      for (int k=0;k<nvar;k++) {
-			        Q[i-1][j][k][n1]=Q[(i+1)/2+dom.nxmax-nghosts/2][(j+nghosts)/2][k][nbs];
-			        Q[i-1][j][k][n2]=Q[(i+1)/2+dom.nxmax-nghosts/2][(j-nghosts+2)/2+dom.ny2][k][nbs];
+			        EMFz[i-1][j][k][n1]=EMFz[(i+1)/2+dom.nxmax-nghosts/2][(j+nghosts)/2][k][nbs];
+			        EMFz[i-1][j][k][n2]=EMFz[(i+1)/2+dom.nxmax-nghosts/2][(j-nghosts+2)/2+dom.ny2][k][nbs];
 		  	      }
 			    }
 			  }
@@ -233,13 +229,13 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			      // Own's bottom
 			      jj=dom.nymax-(nghosts-1);
 			      for (int j=0;j<nghosts;j++) {
-			        Q[i][j][k][nbs]=Q[i][jj][k][n1];
+			        EMFz[i][j][k][nbs]=EMFz[i][jj][k][n1];
 				jj++;
 			      }
 			      // Neighbor's top
 			      jj=dom.nymin;
 			      for (int j=dom.nyp1;j<dom.ny;j++) {
-			        Q[i][j][k][n1]=Q[i][jj][k][nbs];
+			        EMFz[i][j][k][n1]=EMFz[i][jj][k][nbs];
 				jj++;
 			      }
 			    }
@@ -252,13 +248,11 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			  for (int i=dom.nxmin;i<=dom.nx2;i++) {
 			    int nx2i=dom.nx2+i-1-(nghosts-2);
 			    for (int j=0;j<nghosts;j++) {
-			      int i1=2*i-dom.nxmin;
-                              int i2=i1+1;
-			      int j1=2*(j-nghosts/2)-nghosts/2+dom.nymax;
-			      int j2=j1+1;
+			      ii=2*i-dom.nxmin;
+			      jj=2*(j-nghosts/2)-nghosts/2+dom.nymax;
  			      for (int k=0;k<nvar;k++) {
-			        Q[i][j][k][nbs]=0.25*sum_irjr(Q,n1,k,i1,i2,j1,j2);
-			        Q[nx2i][j][k][nbs]=0.25*sum_irjr(Q,n2,k,i1,i2,j1,j2);
+			        EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n1];
+			        EMFz[nx2i][j][k][nbs]=EMFz[ii][jj][k][n2];
 			      }
 			    }
 			  }
@@ -269,7 +263,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=0;j<nghosts;j++) {
                                     ii=dom.nxmax-nghosts+(i+1); jj=dom.nymax-nghosts+(j+1);
-                                    Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+                                    EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                   }}}
                             } else {
 			      n3=dom.lp[n3][2]+3;
@@ -278,7 +272,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
                                       ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymax-nghosts*2+2*j+1;
-                                      Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
+                                      EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                     }}}
 			      } else { // coarser corner
 			        n3=dom.lp[dom.lp[n1][1]][4];
@@ -286,7 +280,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
                                       ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-                                      Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+                                      EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                     }}}
 			      }
 			    }
@@ -298,7 +292,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=0;j<nghosts;j++) {
                                     ii=dom.nxmin+nghosts-(i+1); jj=dom.nymax-nghosts+(j+1);
-                                    Q[dom.nx-1-i][j][k][nbs]=Q[ii][jj][k][n4];
+                                    EMFz[dom.nx-1-i][j][k][nbs]=EMFz[ii][jj][k][n4];
                                   }}}
                             } else {
                               n4=dom.lp[n4][2]+2;
@@ -307,7 +301,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
 				      ii=dom.nxmin+nghosts*2-2*(i+1); jj=dom.nymax-nghosts*2+2*j+1;
-                                      Q[dom.nx-1-i][j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
+                                      EMFz[dom.nx-1-i][j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
                               } else { // coarser corner
 			        n4=dom.lp[dom.lp[n2][1]][5];
@@ -315,7 +309,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                   for (int i=0;i<nghosts;i++) {
                                     for (int j=0;j<nghosts;j++) {
                                       ii=dom.nxmin+nghosts/2-(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-                                      Q[dom.nx-1-i][j][k][nbs]=Q[ii][jj][k][n4];
+                                      EMFz[dom.nx-1-i][j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}} 
 			      }
 			    }
@@ -325,8 +319,8 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			  for (int j=1;j<=nghosts;j++) {
 			    for (int i=0;i<dom.nx;i++) {
 			      for (int k=0;k<nvar;k++) {
-			        Q[i][j+dom.nymax][k][n1]=Q[(i+nghosts)/2][(j+2*nghosts-1)/2][k][nbs];
-			        Q[i][j+dom.nymax][k][n2]=Q[(i-nghosts+2)/2+dom.nx2][(j+2*nghosts-1)/2][k][nbs];
+			        EMFz[i][j+dom.nymax][k][n1]=EMFz[(i+nghosts)/2][(j+2*nghosts-1)/2][k][nbs];
+			        EMFz[i][j+dom.nymax][k][n2]=EMFz[(i-nghosts+2)/2+dom.nx2][(j+2*nghosts-1)/2][k][nbs];
 		  	      }
 			    }
 			  }
@@ -339,13 +333,13 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			      // Own's top
 			      jj=dom.nymin;
 			      for (int j=dom.nyp1;j<dom.ny;j++) {
-			        Q[i][j][k][nbs]=Q[i][jj][k][n1];
+			        EMFz[i][j][k][nbs]=EMFz[i][jj][k][n1];
 				jj++;
 			      }
 			      // Neighbor's bottom
 			      jj=dom.nymax-(nghosts-1);
 			      for (int j=0;j<nghosts;j++) {
-			        Q[i][j][k][n1]=Q[i][jj][k][nbs];
+			        EMFz[i][j][k][n1]=EMFz[i][jj][k][nbs];
 				jj++;
 			      }
 			    }
@@ -357,14 +351,12 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			  // Own's top
 			  for (int i=dom.nxmin;i<=dom.nx2;i++) {
 			    for (int j=dom.nyp1;j<dom.ny;j++) {
-		              int i1=2*i-dom.nxmin;
-			      int i2=i1+1;
-			      int j1=2*(j-dom.nymax+(nghosts/2-1));
-			      int j2=j1+1;
+		              ii=2*i-dom.nxmin;
+			      jj=2*(j-dom.nymax+(nghosts/2-1));
 			      int nx2i=dom.nx2+i-1-(nghosts-2);
  			      for (int k=0;k<nvar;k++) {
-			        Q[i][j][k][nbs]=0.25*sum_irjr(Q,n1,k,i1,i2,j1,j2);
-			        Q[nx2i][j][k][nbs]=0.25*sum_irjr(Q,n2,k,i1,i2,j1,j2);
+			        EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n1];
+			        EMFz[nx2i][j][k][nbs]=EMFz[ii][jj][k][n2];
 			      }
 			    }
 			  }
@@ -375,7 +367,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=dom.nymaxb;j<dom.ny;j++) {
                                     ii=dom.nxmax-nghosts+(i+1); jj=dom.nyminb+(j-dom.nymax);
-                                    Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+                                    EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                   }}}
                             } else {
 			      n3=dom.lp[n3][2]+1;
@@ -384,7 +376,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=dom.nymaxb;j<dom.ny;j++) {
 				    ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nyminb+2*(j-dom.nymax)-1;
-                                    Q[i][j][k][nbs]=0.25*sum_irjr(Q,n3,k,ii,ii+1,jj,jj+1);
+                                    EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                   }}}
 			    } else { // coarser corner
 			      n3=dom.lp[dom.lp[n1][1]][4];
@@ -392,7 +384,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=dom.nymaxb;j<dom.ny;j++) {
                                     ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nyminb+(j-dom.nymax+1)/2;
-                                    Q[i][j][k][nbs]=Q[ii][jj][k][n3];
+                                    EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                   }}}
 			      }
 			    }			      
@@ -404,7 +396,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                 for (int i=0;i<nghosts;i++) {
                                   for (int j=dom.nymaxb;j<dom.ny;j++) {
                                     ii=dom.nxmin+nghosts-(i+1); jj=dom.nyminb+(j-dom.nymax);
-                                    Q[dom.nx-1-i][j][k][nbs]=Q[ii][jj][k][n4];
+                                    EMFz[dom.nx-1-i][j][k][nbs]=EMFz[ii][jj][k][n4];
                                   }}}
 			    } else {
                               n4=dom.lp[n4][2];
@@ -413,7 +405,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                   for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                     for (int j=dom.nymaxb;j<dom.ny;j++) {
                                       ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nyminb+2*(j-dom.nymax)-1;
-                                      Q[i][j][k][nbs]=0.25*sum_irjr(Q,n4,k,ii,ii+1,jj,jj+1);
+                                      EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
                               } else { // coarser corner
 			        n4=dom.lp[dom.lp[n2][1]][5];
@@ -421,7 +413,7 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
                                   for (int i=dom.nxmaxb;i<dom.nx;i++) {
                                     for (int j=dom.nymaxb;j<dom.ny;j++) {
                                       ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nyminb+(j-dom.nymax+1)/2;
-                                      Q[i][j][k][nbs]=Q[ii][jj][k][n4];
+                                      EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
 			      }
 			    }
@@ -431,8 +423,8 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 			  for (int j=1;j<=nghosts;j++) {
 			    for (int i=0;i<dom.nx;i++) {
 			      for (int k=0;k<nvar;k++) {
-			        Q[i][j-1][k][n1]=Q[(i+nghosts)/2][(j+1)/2+dom.nymax-nghosts/2][k][nbs];
-			        Q[i][j-1][k][n2]=Q[(i-nghosts+2)/2+dom.nx2][(j+1)/2+dom.nymax-nghosts/2][k][nbs];
+			        EMFz[i][j-1][k][n1]=EMFz[(i+nghosts)/2][(j+1)/2+dom.nymax-nghosts/2][k][nbs];
+			        EMFz[i][j-1][k][n2]=EMFz[(i-nghosts+2)/2+dom.nx2][(j+1)/2+dom.nymax-nghosts/2][k][nbs];
 		  	      }
 			    }
 			  }
@@ -446,5 +438,5 @@ void boundary(meshblock &dom,real**** Q,int nvar) {
 	}
 
 	// External boundaries
-	extboundary(dom,Q,nvar);
+	extboundary(dom,EMFz,nvar);
 }

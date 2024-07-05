@@ -5,6 +5,8 @@
 
 void setBCs(int nx,int ny,int nvar,int nb,real**** Q);
 void boundary(meshblock &dom,real**** Q,int nvar);
+void boundaryfc(meshblock &dom,real**** Bi,int nvar);
+void boundaryec(meshblock &dom,real**** EMFz,int nvar);
 
 void CT2D(meshblock &dom,real**** q,real**** Bi,int step,real**** Binew) {
 	real res;
@@ -29,7 +31,8 @@ void CT2D(meshblock &dom,real**** q,real**** Bi,int step,real**** Binew) {
 
 	 for (int nb=0;nb<dom.lastActive;nb++) {
           if (dom.leafs[nb]) {
-	
+
+	    #pragma omp parallel for collapse(2) default(none) shared(dom,p,C,q,nb)	  
 	    for (int i=0; i<dom.nx; i++) {
 	      for (int j=0; j<dom.ny; j++) {
 	        p[i][j]=(dom.gamma-1)*(q[i][j][4][nb]-0.5*(MAG(q[i][j][1][nb],q[i][j][2][nb],q[i][j][3][nb])/q[i][j][0][nb]+MAG(q[i][j][5][nb],q[i][j][6][nb],q[i][j][7][nb])));
@@ -37,6 +40,7 @@ void CT2D(meshblock &dom,real**** q,real**** Bi,int step,real**** Binew) {
 	      }
 	    }
 
+	    #pragma omp parallel for collapse(2) default(none) shared(dom,nb,p,C,q)
             for (int i=1; i<dom.nx; i++) {
               for (int j=1; j<dom.ny; j++) {
 		real beta=0.5;
@@ -61,7 +65,7 @@ void CT2D(meshblock &dom,real**** q,real**** Bi,int step,real**** Binew) {
 
 		real psi=0.5;
 		if (sw1 and sw2) psi=dPx/(dPx+dPy);
-		if (psi<0 or psi>1) {cout<<"Incorrect psi produced..."<<endl; throw exception();}
+		if (psi<0 or psi>1) {printf("Incorrect psi produced... \n"); throw exception();}
 		dom.EMF[i][j][0][nb]=0.5*(1.-psi)*(dom.gg[i-1][j][5][nb]+dom.gg[i][j][5][nb])
 				-0.5*psi*(dom.ff[i][j-1][6][nb]+dom.ff[i][j][6][nb]);
 	      }
@@ -69,7 +73,7 @@ void CT2D(meshblock &dom,real**** q,real**** Bi,int step,real**** Binew) {
 	  }
 	}
 	}
-	boundary(dom,dom.EMF,1);
+	boundaryec(dom,dom.EMF,1);
 
 	for (int nb=0;nb<dom.lastActive;nb++) {
 	  if (dom.leafs[nb]) {
@@ -86,7 +90,7 @@ void CT2D(meshblock &dom,real**** q,real**** Bi,int step,real**** Binew) {
 	    }
 	  }
 	}	
-	boundary(dom,Binew,2);
+	boundaryfc(dom,Binew,2);
 
 	real divB;
 	for (int nb=0;nb<dom.lastActive;nb++) {
