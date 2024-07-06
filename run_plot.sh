@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Base name of the data file
-BASE_NAME="BWy023t_0.200185"
-base_mesh="8x8_lv5_CT_minmod-R_"
+BASE_NAME="rotor229t_0.295067"
+base_mesh="16x16_lv5_CT_minmod-R_"
 slimiter="MC-SL"
 rsolver="RUSA"
 

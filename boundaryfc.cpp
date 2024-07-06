@@ -72,15 +72,7 @@ void boundaryfc(meshblock &dom,real**** Bi,int nvar) {
 				      j2= k==0 ? j1+1 : j1;
                                       Bi[i][j][k][nbs]=0.5*sum_irjr(Bi,n3,k,i1,i2,j1,j2);
                                     }}}
-			      } else { // coarser corner
-			        n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][6];
-                                for (int k=0;k<nvar;k++) {
-                                  for (int i=0;i<nghosts;i++) {
-                                    for (int j=0;j<nghosts;j++) {
-                                      ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-                                      Bi[i][j][k][nbs]=Bi[ii][jj][k][n3];
-                                    }}}
-			      }
+			      } 
 			    }
 			  }
 			  n4=dom.lp[dom.lp[n2][1]][7]; // Top corner
@@ -103,15 +95,7 @@ void boundaryfc(meshblock &dom,real**** Bi,int nvar) {
                                       j2= k==0 ? j1+1 : j1;
                                       Bi[i][dom.ny-1-j][k][nbs]=0.5*sum_irjr(Bi,n4,k,i1,i2,j1,j2);
                                     }}}
-                              } else  { // coarser corner
-			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][7];
-                                for (int k=0;k<nvar;k++) {
-                                  for (int i=0;i<nghosts;i++) {
-                                    for (int j=0;j<nghosts;j++) {
-                                      ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymin+nghosts/2-(j+2)/2;
-                                      Bi[i][dom.ny-1-j][k][nbs]=Bi[ii][jj][k][n4];
-                                    }}}
-			      }
+                              } 
 			    }
                           }			  
 			  // Neighbor's right
@@ -182,15 +166,7 @@ void boundaryfc(meshblock &dom,real**** Bi,int nvar) {
                                       j2= k==0 ? j1+1 : j1;
                                       Bi[i][j][k][nbs]=0.5*sum_irjr(Bi,n3,k,i1,i2,j1,j2);
                                     }}}
-			      } else { // coarser corner
-			        n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][6];
-                                for (int k=0;k<nvar;k++) {
-                                  for (int i=dom.nxmaxb;i<dom.nx;i++) {
-                                    for (int j=0;j<nghosts;j++) {
-                                      ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-                                      Bi[i][j][k][nbs]=Bi[ii][jj][k][n3];
-                                    }}}
-			      }	
+			      } 
 			    }			    
 			  }			  
 			  n4=dom.lp[dom.lp[n2][1]][7]; // Top corner
@@ -213,15 +189,7 @@ void boundaryfc(meshblock &dom,real**** Bi,int nvar) {
                                       j2= k==0 ? j1+1 : j1;
                                       Bi[i][dom.ny-1-j][k][nbs]=0.5*sum_irjr(Bi,n4,k,i1,i2,j1,j2);
                                     }}}
-                              } else { // coarser corner
-			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][7];
-                                for (int k=0;k<nvar;k++) {
-                                  for (int i=dom.nxmaxb;i<dom.nx;i++) {
-                                    for (int j=0;j<nghosts;j++) {
-                                      ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nymin+nghosts/2-(j+2)/2;
-                                      Bi[i][dom.ny-1-j][k][nbs]=Bi[ii][jj][k][n4];
-                                    }}}
-			      }
+                              } 
 			    }
                           }
 			  // Neighbor's left
@@ -292,15 +260,7 @@ void boundaryfc(meshblock &dom,real**** Bi,int nvar) {
                                       j2= k==0 ? j1+1 : j1;
                                       Bi[i][j][k][nbs]=0.5*sum_irjr(Bi,n3,k,i1,i2,j1,j2);
                                     }}}
-			      } else { // coarser corner
-			        n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][4];
-                                for (int k=0;k<nvar;k++) {
-                                  for (int i=0;i<nghosts;i++) {
-                                    for (int j=0;j<nghosts;j++) {
-                                      ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-                                      Bi[i][j][k][nbs]=Bi[ii][jj][k][n3];
-                                    }}}
-			      }
+			      } 
 			    }
 			  }
 			  n4=dom.lp[dom.lp[n2][1]][5]; // right corner
@@ -323,15 +283,7 @@ void boundaryfc(meshblock &dom,real**** Bi,int nvar) {
                                       j2= k==0 ? j1+1 : j1;
                                       Bi[dom.nx-1-i][j][k][nbs]=0.5*sum_irjr(Bi,n4,k,i1,i2,j1,j2);
                                     }}}
-                              } else { // coarser corner
-			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][5];
-                                for (int k=0;k<nvar;k++) {
-                                  for (int i=0;i<nghosts;i++) {
-                                    for (int j=0;j<nghosts;j++) {
-                                      ii=dom.nxmin+nghosts/2-(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-                                      Bi[dom.nx-1-i][j][k][nbs]=Bi[ii][jj][k][n4];
-                                    }}} 
-			      }
+                              } 
 			    }
                           }
 			  // Neighbor's top
@@ -402,15 +354,7 @@ void boundaryfc(meshblock &dom,real**** Bi,int nvar) {
                                     j2= k==0 ? j1+1 : j1;
                                     Bi[i][j][k][nbs]=0.5*sum_irjr(Bi,n3,k,i1,i2,j1,j2);
                                   }}}
-			    } else { // coarser corner
-			      n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][4];
-                              for (int k=0;k<nvar;k++) {
-                                for (int i=0;i<nghosts;i++) {
-                                  for (int j=dom.nymaxb;j<dom.ny;j++) {
-                                    ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nyminb+(j-dom.nymax+1)/2;
-                                    Bi[i][j][k][nbs]=Bi[ii][jj][k][n3];
-                                  }}}
-			      }
+			      } 
 			    }			      
 			  }
 			  n4=dom.lp[dom.lp[n2][1]][5]; // right corner
@@ -433,15 +377,7 @@ void boundaryfc(meshblock &dom,real**** Bi,int nvar) {
                                       j2= k==0 ? j1+1 : j1;
                                       Bi[i][j][k][nbs]=0.5*sum_irjr(Bi,n4,k,i1,i2,j1,j2);
                                     }}}
-                              } else { // coarser corner
-			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][5];
-                                for (int k=0;k<nvar;k++) {
-                                  for (int i=dom.nxmaxb;i<dom.nx;i++) {
-                                    for (int j=dom.nymaxb;j<dom.ny;j++) {
-                                      ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nyminb+(j-dom.nymax+1)/2;
-                                      Bi[i][j][k][nbs]=Bi[ii][jj][k][n4];
-                                    }}}
-			      }
+                              } 
 			    }
                           }
 			  // Neighbor's bottom

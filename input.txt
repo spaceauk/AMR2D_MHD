@@ -1,5 +1,5 @@
-8 8 8
+16 16 8
 1.0 1.0 
-0.41
-BWy MC RUSA
+0.5
+rotor MC RUSA
 

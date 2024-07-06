@@ -66,15 +66,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
                                       ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymax-nghosts*2+2*j+1;
                                       EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                     }}}
-			      } else { // coarser corner
-			        n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][6];
-                                for (int k=0;k<nvar;k++) {
-                                  for (int i=0;i<nghosts;i++) {
-                                    for (int j=0;j<nghosts;j++) {
-                                      ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-                                      EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
-                                    }}}
-			      }
+			      } 
 			    }
 			  }
 			  n4=dom.lp[dom.lp[n2][1]][7]; // Top corner
@@ -95,15 +87,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
                                       ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymin+nghosts*2-2*(j+1);
                                       EMFz[i][dom.ny-1-j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
-                              } else  { // coarser corner
-			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][7];
-                                for (int k=0;k<nvar;k++) {
-                                  for (int i=0;i<nghosts;i++) {
-                                    for (int j=0;j<nghosts;j++) {
-                                      ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymin+nghosts/2-(j+2)/2;
-                                      EMFz[i][dom.ny-1-j][k][nbs]=EMFz[ii][jj][k][n4];
-                                    }}}
-			      }
+                              } 
 			    }
                           }			  
 			  // Neighbor's right
@@ -170,15 +154,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
                                       ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nymax-nghosts*2+2*j+1;
                                       EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                     }}}
-			      } else { // coarser corner
-			        n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][6];
-                                for (int k=0;k<nvar;k++) {
-                                  for (int i=dom.nxmaxb;i<dom.nx;i++) {
-                                    for (int j=0;j<nghosts;j++) {
-                                      ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-                                      EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
-                                    }}}
-			      }	
+			      } 
 			    }			    
 			  }			  
 			  n4=dom.lp[dom.lp[n2][1]][7]; // Top corner
@@ -199,15 +175,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
                                       ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nymin+nghosts*2-2*(j+1);
                                       EMFz[i][dom.ny-1-j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
-                              } else { // coarser corner
-			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][7];
-                                for (int k=0;k<nvar;k++) {
-                                  for (int i=dom.nxmaxb;i<dom.nx;i++) {
-                                    for (int j=0;j<nghosts;j++) {
-                                      ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nymin+nghosts/2-(j+2)/2;
-                                      EMFz[i][dom.ny-1-j][k][nbs]=EMFz[ii][jj][k][n4];
-                                    }}}
-			      }
+                              } 
 			    }
                           }
 			  // Neighbor's left
@@ -274,15 +242,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
                                       ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nymax-nghosts*2+2*j+1;
                                       EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                     }}}
-			      } else { // coarser corner
-			        n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][4];
-                                for (int k=0;k<nvar;k++) {
-                                  for (int i=0;i<nghosts;i++) {
-                                    for (int j=0;j<nghosts;j++) {
-                                      ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-                                      EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
-                                    }}}
-			      }
+			      } 
 			    }
 			  }
 			  n4=dom.lp[dom.lp[n2][1]][5]; // right corner
@@ -303,15 +263,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
 				      ii=dom.nxmin+nghosts*2-2*(i+1); jj=dom.nymax-nghosts*2+2*j+1;
                                       EMFz[dom.nx-1-i][j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
-                              } else { // coarser corner
-			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][5];
-                                for (int k=0;k<nvar;k++) {
-                                  for (int i=0;i<nghosts;i++) {
-                                    for (int j=0;j<nghosts;j++) {
-                                      ii=dom.nxmin+nghosts/2-(i+2)/2; jj=dom.nymax-nghosts/2+(j+2)/2;
-                                      EMFz[dom.nx-1-i][j][k][nbs]=EMFz[ii][jj][k][n4];
-                                    }}} 
-			      }
+                              } 
 			    }
                           }
 			  // Neighbor's top
@@ -378,15 +330,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
 				    ii=dom.nxmax-nghosts*2+2*i+1; jj=dom.nyminb+2*(j-dom.nymax)-1;
                                     EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
                                   }}}
-			    } else { // coarser corner
-			      n3=dom.lp[dom.lp[dom.lp[n1][1]][1]][4];
-                              for (int k=0;k<nvar;k++) {
-                                for (int i=0;i<nghosts;i++) {
-                                  for (int j=dom.nymaxb;j<dom.ny;j++) {
-                                    ii=dom.nxmax-nghosts/2+(i+2)/2; jj=dom.nyminb+(j-dom.nymax+1)/2;
-                                    EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n3];
-                                  }}}
-			      }
+			      } 
 			    }			      
 			  }
 			  n4=dom.lp[dom.lp[n2][1]][5]; // right corner
@@ -407,15 +351,7 @@ void boundaryec(meshblock &dom,real**** EMFz,int nvar) {
                                       ii=dom.nxminb+2*(i-dom.nxmax)-1; jj=dom.nyminb+2*(j-dom.nymax)-1;
                                       EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n4];
                                     }}}
-                              } else { // coarser corner
-			        n4=dom.lp[dom.lp[dom.lp[n2][1]][1]][5];
-                                for (int k=0;k<nvar;k++) {
-                                  for (int i=dom.nxmaxb;i<dom.nx;i++) {
-                                    for (int j=dom.nymaxb;j<dom.ny;j++) {
-                                      ii=dom.nxminb+(i-dom.nxmax+1)/2; jj=dom.nyminb+(j-dom.nymax+1)/2;
-                                      EMFz[i][j][k][nbs]=EMFz[ii][jj][k][n4];
-                                    }}}
-			      }
+                              } 
 			    }
                           }
 			  // Neighbor's bottom
